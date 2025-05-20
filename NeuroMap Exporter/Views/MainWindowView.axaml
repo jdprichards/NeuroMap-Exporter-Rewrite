@@ -1,0 +1,68 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:NeuroMap_Exporter.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        WindowState="Maximized"
+		x:Class="NeuroMap_Exporter.Views.MainWindowView"
+        x:DataType="vm:MainWindowViewModel"
+		x:CompileBindings="True"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="NeuroMap Exporter">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+	<DockPanel>
+		<Grid DockPanel.Dock="Bottom"
+				   Height="50"
+				   Background="Gray">
+			<TextBlock
+				Text="Developed by Joeseph Richards | github.com/jdprichards"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"/>
+		</Grid>
+
+		<Grid DockPanel.Dock="Top"
+			  Height="50"
+			  Background="Gray">
+
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+
+			<TextBlock Grid.Column="0"
+					   Text="EMG-IMU Upsampler"
+					   VerticalAlignment="Center"
+					   Margin="10"
+					   Foreground="White"
+					   FontWeight="DemiBold"
+					   FontSize="18"/>
+
+			<Button Click="clkExit"
+					HorizontalAlignment="Right"
+					VerticalAlignment="Center"
+					Grid.Column="1"
+					Content="Exit"
+					Margin="20 0"
+					Width="40"
+					Height="30"
+					Background="Red"
+					Foreground="White"/>
+		</Grid>
+		
+		<!-- Main Page -->
+		<Border BorderBrush="Gray"
+				BorderThickness="1"
+				ClipToBounds="True">
+			
+			<TransitioningContentControl Content="{Binding CurrentPage}"/>
+			
+		</Border>
+	</DockPanel>
+</Window>

@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:NeuroMap_Exporter.ViewModels"
+			 x:Class="NeuroMap_Exporter.Views.NMExporterView">
+	
+	<Design.DataContext>
+		<vm:NMExporterViewModel/>
+	</Design.DataContext>
+
+	<DockPanel>
+		<Grid Name="ProgressGrid"
+					  DockPanel.Dock="Bottom"
+					  Margin="100 0"
+					  IsVisible="True">
+		</Grid>
+
+		<Grid DockPanel.Dock="Top">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="50"/>
+				<RowDefinition Height="50"/>
+			</Grid.RowDefinitions>
+
+			<Grid Grid.Row="0">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="125"/>
+					<ColumnDefinition Width="300"/>
+					<ColumnDefinition Width="150"/>
+					<ColumnDefinition Width="150"/>
+				</Grid.ColumnDefinitions>
+
+				<TextBlock Grid.Column="0"
+						Text="Input Folder:"
+						   Height="25"
+						   Margin="10 10"
+						   HorizontalAlignment="Left"
+						   VerticalAlignment="Center"
+						   FontSize="12"/>
+
+				<TextBox Grid.Column="1"
+						 Height="25"
+						 Width="300"
+						 Margin="10 10"
+						 Text="Binding "
+						 VerticalAlignment="Center"
+						 HorizontalAlignment="Left"
+						 FontSize="12"/>
+
+				<Button Grid.Column="2"
+						Name="btnImportSearchFolder"
+						Command=""
+						Width="100"
+						Height="25"
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
+						VerticalContentAlignment="Center"
+						HorizontalContentAlignment="Center"
+						Margin="5"
+						FontSize="12"/>
+
+				<Button Grid.Column="3"
+						Name="btnUpsample"
+						Content="Upsample"
+						Height="30"
+						Width="90"
+						CornerRadius="10"
+						Margin="10 10"
+						VerticalAlignment="Center"
+						HorizontalAlignment="Center"
+						VerticalContentAlignment="Center"
+						HorizontalContentAlignment="Center"
+						FontSize="12"
+						IsEnabled=" "
+								/>
+			</Grid>
+		</Grid>
+	</DockPanel>
+
+	
+</UserControl>
