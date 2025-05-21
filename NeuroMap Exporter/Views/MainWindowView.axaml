@@ -3,7 +3,7 @@
         xmlns:vm="using:NeuroMap_Exporter.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
         WindowState="Maximized"
 		x:Class="NeuroMap_Exporter.Views.MainWindowView"
         x:DataType="vm:MainWindowViewModel"
@@ -37,7 +37,7 @@
 			</Grid.ColumnDefinitions>
 
 			<TextBlock Grid.Column="0"
-					   Text="EMG-IMU Upsampler"
+					   Text="NeuroMap Exporter"
 					   VerticalAlignment="Center"
 					   Margin="10"
 					   Foreground="White"

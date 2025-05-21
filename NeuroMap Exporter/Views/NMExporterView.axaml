@@ -2,81 +2,317 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
              xmlns:vm="using:NeuroMap_Exporter.ViewModels"
+			 x:DataType="vm:NMExporterViewModel"
 			 x:Class="NeuroMap_Exporter.Views.NMExporterView">
 	
 	<Design.DataContext>
 		<vm:NMExporterViewModel/>
 	</Design.DataContext>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="50"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		
+		<TextBlock Grid.Row="0"
+				   Text="NeuroMap Exporter"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Center"
+				   FontWeight="DemiBold"/>
+		
+		<DockPanel Grid.Row="1">
+			<Grid Name="ProgressGrid"
+						  DockPanel.Dock="Bottom"
+						  Margin="0 0"
+						  IsVisible="{Binding !NMExporterModel.HideProgress}">
 
-	<DockPanel>
-		<Grid Name="ProgressGrid"
-					  DockPanel.Dock="Bottom"
-					  Margin="100 0"
-					  IsVisible="True">
-		</Grid>
-
-		<Grid DockPanel.Dock="Top">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="50"/>
-				<RowDefinition Height="50"/>
-			</Grid.RowDefinitions>
-
-			<Grid Grid.Row="0">
 				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="125"/>
-					<ColumnDefinition Width="300"/>
 					<ColumnDefinition Width="150"/>
+					<ColumnDefinition Width="*"/>
 					<ColumnDefinition Width="150"/>
 				</Grid.ColumnDefinitions>
 
-				<TextBlock Grid.Column="0"
-						Text="Input Folder:"
-						   Height="25"
-						   Margin="10 10"
-						   HorizontalAlignment="Left"
-						   VerticalAlignment="Center"
-						   FontSize="12"/>
+				<Grid Name="ProgressLabels">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="10"/>
+					</Grid.RowDefinitions>
+					
+					<TextBlock Grid.Row="0"
+							   FontSize="12"
+							   Text="File Progress"
+							   HorizontalAlignment="Center"
+							   VerticalAlignment="Center"/>
+					<TextBlock Grid.Row="1"
+							   FontSize="12"
+							   Text="Row Progress"
+							   HorizontalAlignment="Center"
+							   VerticalAlignment="Center"/>
+				</Grid>
 
-				<TextBox Grid.Column="1"
-						 Height="25"
-						 Width="300"
-						 Margin="10 10"
-						 Text="Binding "
-						 VerticalAlignment="Center"
-						 HorizontalAlignment="Left"
-						 FontSize="12"/>
+				<Border Grid.Column="1">
+					<Border.Effect>
+						<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
+					</Border.Effect>
 
-				<Button Grid.Column="2"
-						Name="btnImportSearchFolder"
-						Command=""
-						Width="100"
-						Height="25"
-						HorizontalAlignment="Left"
-						VerticalAlignment="Center"
-						VerticalContentAlignment="Center"
-						HorizontalContentAlignment="Center"
-						Margin="5"
-						FontSize="12"/>
+					<Grid Name="ProgressBars">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height="10"/>
+						</Grid.RowDefinitions>
+						
+						<ProgressBar Grid.Row="0"
+									 Name="FilesProgress"
+									 Value="{Binding NMExporterModel.FilePercentage}"
+									 Height="15"
+									 Minimum="0"
+									 Maximum="100"
+									 Margin="5"
+									 BorderThickness="1"
+									 BorderBrush="Gray"/>
+						<TextBlock Grid.Row="0"
+								   Name="FilesPercent"
+								   Text="{Binding NMExporterModel.FilePercentageString}"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
 
-				<Button Grid.Column="3"
-						Name="btnUpsample"
-						Content="Upsample"
-						Height="30"
-						Width="90"
-						CornerRadius="10"
-						Margin="10 10"
-						VerticalAlignment="Center"
-						HorizontalAlignment="Center"
-						VerticalContentAlignment="Center"
-						HorizontalContentAlignment="Center"
-						FontSize="12"
-						IsEnabled=" "
-								/>
+						<ProgressBar Grid.Row="1"
+									 Name="RowsProgress"
+									 Value="{Binding NMExporterModel.RowPercentage}"
+									 Height="15"
+									 Minimum="0"
+									 Maximum="100"
+									 Margin="5"
+									 BorderThickness="1"
+									 BorderBrush="Gray"/>
+						
+						<TextBlock Grid.Row="1"
+								   Name="RowsPercent"
+								   Text="{Binding NMExporterModel.RowPercentageString}"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+					</Grid>
+						  
+				</Border>
+
+				<Grid Grid.Column="2"
+					  Name="ProgressAmounts">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="10"/>
+					</Grid.RowDefinitions>
+					
+					<TextBlock Grid.Row="0"
+							   Name="FilesRemaining"
+							   FontSize="12"
+							   FontWeight="DemiBold"
+							   TextAlignment="Center"
+							   HorizontalAlignment="Left"
+							   VerticalAlignment="Center"
+							   Text="{Binding NMExporterModel.FileCompleteRatio}"/>
+
+					<TextBlock Grid.Row="1"
+							   Name="RowsRemaining"
+							   FontSize="12"
+							   FontWeight="DemiBold"
+							   TextAlignment="Center"
+							   HorizontalAlignment="Left"
+							   VerticalAlignment="Center"
+							   Text="{Binding NMExporterModel.RowCompleteRatio}"/>
+							  
+				</Grid>
 			</Grid>
-		</Grid>
-	</DockPanel>
 
+			<Grid DockPanel.Dock="Top" Margin="25 0">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="80"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+				
+				<Grid Grid.Row="0">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="50"/>
+						<RowDefinition Height="50"/>
+					</Grid.RowDefinitions>
+
+					<Grid Grid.Row="0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="125"/>
+							<ColumnDefinition Width="300"/>
+							<ColumnDefinition Width="150"/>
+							<ColumnDefinition Width="150"/>
+						</Grid.ColumnDefinitions>
+
+						<TextBlock Grid.Column="0"
+								Text="Input Folder:"
+								   Height="25"
+								   Margin="10 10"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   FontSize="12"/>
+
+						<TextBox Grid.Column="1"
+								 Height="25"
+								 Width="300"
+								 Margin="10 10"
+								 Text="{Binding NMExporterModel.InputFolder}"
+								 VerticalAlignment="Center"
+								 HorizontalAlignment="Left"
+								 FontSize="12"/>
+
+						<Button Grid.Column="2"
+								Name="btnImportSearchFolder"
+								Content="Search Folder"
+								Command="{Binding ClkImportSearchFolder}"
+								Width="100"
+								Height="25"
+								HorizontalAlignment="Left"
+								VerticalAlignment="Center"
+								VerticalContentAlignment="Center"
+								HorizontalContentAlignment="Center"
+								Margin="5"
+								FontSize="12"/>
+
+						<Button Grid.Column="3"
+								Name="btnUpsample"
+								Command="{Binding ConvertAsync}"
+								Content="Convert"
+								Height="30"
+								Width="90"
+								CornerRadius="10"
+								Margin="10 10"
+								VerticalAlignment="Center"
+								HorizontalAlignment="Center"
+								VerticalContentAlignment="Center"
+								HorizontalContentAlignment="Center"
+								FontSize="12"
+								IsEnabled="{Binding !NMExporterModel.DisableUpsample}"/>
+
+					</Grid>
+
+					<Grid Grid.Row="1">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="125"/>
+							<ColumnDefinition Width="300"/>
+							<ColumnDefinition Width="150"/>
+							<ColumnDefinition Width="150"/>
+						</Grid.ColumnDefinitions>
+
+						<TextBlock Grid.Column="0"
+								Text="Output Folder:"
+								   Height="25"
+								   Margin="10 10"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   FontSize="12"/>
+
+						<TextBox Grid.Column="1"
+								 Height="25"
+								 Width="300"
+								 Margin="10 10"
+								 Text="{Binding NMExporterModel.OutputFolder}"
+								 VerticalAlignment="Center"
+								 HorizontalAlignment="Left"
+								 FontSize="12"/>
+
+						<Button Grid.Column="2"
+								Name="btnExportSearchFolder"
+								Content="Search Folder"
+								Command="{Binding ClkExportSearchFolder}"
+								Width="100"
+								Height="25"
+								HorizontalAlignment="Left"
+								VerticalAlignment="Center"
+								VerticalContentAlignment="Center"
+								HorizontalContentAlignment="Center"
+								Margin="5"
+								FontSize="12"/>
+					</Grid>
+					
+				</Grid>
+				
+				<Grid Grid.Row="1" Margin="100 25" Height="200" Width="100" HorizontalAlignment="Left" VerticalAlignment="Top">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+					</Grid.RowDefinitions>
+
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="60"/>
+						<ColumnDefinition Width="100"/>
+					</Grid.ColumnDefinitions>
+					
+					<TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" VerticalAlignment="Center" Margin="-70 0"
+							   Text="File types to process:"/>
+
+					<TextBlock Grid.Row="1" 
+							   Grid.Column="0"
+							   Text="Firings"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBFiring"
+							  Grid.Row="1"
+							  Grid.Column="1"
+							  IsChecked="{Binding NMExporterModel.SelectFirings}"
+							  />
+
+					<TextBlock Grid.Row="2"
+							   Grid.Column="0"
+							   Text="MFR"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBMFR"
+							  Grid.Row="2"
+							  Grid.Column="1"
+							  IsChecked="{Binding NMExporterModel.SelectMFR}"
+							  />
+
+					<TextBlock Grid.Row="3"
+							   Grid.Column="0"
+							   Text="MUAPs"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBMUAPs"
+							  Grid.Row="3"
+							  Grid.Column="1"
+							  IsChecked="{Binding NMExporterModel.SelectMUAPS}"
+							  />
+
+					<TextBlock Grid.Row="4"
+							   Grid.Column="0"
+							   Text="Stats"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBStats"
+							  IsChecked="{Binding NMExporterModel.SelectStats}"
+							  Grid.Row="4"
+							  Grid.Column="1"
+							 />
+					
+					<TextBlock Grid.Row="5"
+							   Grid.Column="0"
+							   Text="All"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBAll"
+							  IsChecked="{Binding NMExporterModel.SelectAll}"
+							  Grid.Row="5"
+							  Grid.Column="1"
+							  Command="{Binding ClkAll}"
+							  />
+					
+				</Grid>
+			</Grid>
+		</DockPanel>
+	</Grid>
 	
 </UserControl>
