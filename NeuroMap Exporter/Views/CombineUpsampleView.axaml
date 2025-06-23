@@ -1,46 +1,42 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
-             xmlns:vm="using:NeuroMap_Exporter.ViewModels"
-			 x:DataType="vm:NMExporterViewModel"
-			 x:Class="NeuroMap_Exporter.Views.NMExporterView">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+		xmlns:vm="using:NeuroMap_Exporter.ViewModels"
+        x:Class="NeuroMap_Exporter.Views.CombineUpsampleView"
+		x:CompileBindings="True"
+		x:DataType="vm:CombineUpsampleViewModel">
 
 	<Design.DataContext>
-		<vm:NMExporterViewModel/>
+		<vm:CombineUpsampleViewModel/>
 	</Design.DataContext>
+
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="50"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-
 		<TextBlock Grid.Row="0"
-				   Text="NeuroMap Exporter"
+				   Text="Combine Upsample"
 				   HorizontalAlignment="Center"
 				   VerticalAlignment="Center"
 				   FontWeight="DemiBold"/>
-
 		<DockPanel Grid.Row="1">
 			<Grid Name="ProgressGrid"
-						  DockPanel.Dock="Bottom"
-						  Margin="0 0"
-						  IsVisible="{Binding !NMExporterModel.HideProgress}">
-
+				  DockPanel.Dock="Bottom"
+				  Margin="0 0">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="150"/>
 					<ColumnDefinition Width="*"/>
 					<ColumnDefinition Width="150"/>
 				</Grid.ColumnDefinitions>
-
 				<Grid Name="ProgressLabels">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="30"/>
 						<RowDefinition Height="30"/>
 						<RowDefinition Height="10"/>
 					</Grid.RowDefinitions>
-
 					<TextBlock Grid.Row="0"
 							   FontSize="12"
 							   Text="File Progress"
@@ -52,13 +48,12 @@
 							   HorizontalAlignment="Center"
 							   VerticalAlignment="Center"/>
 				</Grid>
-
 				<Border Grid.Column="1">
 					<Border.Effect>
 						<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
 					</Border.Effect>
-
 					<Grid Name="ProgressBars">
+						<!-- Progress bars will be added here -->
 						<Grid.RowDefinitions>
 							<RowDefinition Height="30"/>
 							<RowDefinition Height="30"/>
@@ -67,36 +62,34 @@
 
 						<ProgressBar Grid.Row="0"
 									 Name="FilesProgress"
-									 Value="{Binding NMExporterModel.FilePercentage}"
+									 Value="{Binding CombineUpsampleModel.FilePercentage}"
 									 Height="15"
 									 Minimum="0"
 									 Maximum="100"
-									 Margin="5"
 									 BorderThickness="1"
 									 BorderBrush="Gray"/>
+
 						<TextBlock Grid.Row="0"
 								   Name="FilesPercent"
-								   Text="{Binding NMExporterModel.FilePercentageString}"
+								   Text="{Binding CombineUpsampleModel.FilePercentageString}"
 								   HorizontalAlignment="Center"
 								   VerticalAlignment="Center"/>
 
 						<ProgressBar Grid.Row="1"
-									 Name="RowsProgress"
-									 Value="{Binding NMExporterModel.RowPercentage}"
+									 Name="RowProgress"
 									 Height="15"
-									 Minimum="0"
-									 Maximum="100"
-									 Margin="5"
+									 MinHeight="0"
+									 MaxHeight="100"
+									 Margin="0"
 									 BorderThickness="1"
 									 BorderBrush="Gray"/>
 
-						<TextBlock Grid.Row="1"
-								   Name="RowsPercent"
-								   Text="{Binding NMExporterModel.RowPercentageString}"
+						<TextBlock Grid.Row="0"
+								   Name="RowPercent"
+								   Text="{Binding CombineUpsampleModel.RowPercentageString}"
 								   HorizontalAlignment="Center"
 								   VerticalAlignment="Center"/>
 					</Grid>
-
 				</Border>
 
 				<Grid Grid.Column="2"
@@ -114,7 +107,7 @@
 							   TextAlignment="Center"
 							   HorizontalAlignment="Left"
 							   VerticalAlignment="Center"
-							   Text="{Binding NMExporterModel.FileCompleteRatio}"/>
+							   Text="{Binding CombineUpsampleModel.FileCompleteRatio}"/>
 
 					<TextBlock Grid.Row="1"
 							   Name="RowsRemaining"
@@ -123,11 +116,11 @@
 							   TextAlignment="Center"
 							   HorizontalAlignment="Left"
 							   VerticalAlignment="Center"
-							   Text="{Binding NMExporterModel.RowCompleteRatio}"/>
-
+							   Text="{Binding CombineUpsampleModel.RowCompleteRatio}"/>
 				</Grid>
 			</Grid>
-
+			
+			<!-- Other UI elements can be added here -->
 			<Grid DockPanel.Dock="Top" Margin="25 0">
 				<Grid.RowDefinitions>
 					<RowDefinition Height="80"/>
@@ -149,7 +142,7 @@
 						</Grid.ColumnDefinitions>
 
 						<TextBlock Grid.Column="0"
-								Text="Input Folder:"
+								   Text="Input Folder:"
 								   Height="25"
 								   Margin="10 10"
 								   HorizontalAlignment="Left"
@@ -160,39 +153,37 @@
 								 Height="25"
 								 Width="300"
 								 Margin="10 10"
-								 Text="{Binding NMExporterModel.InputFolder}"
+								 Text="{Binding CombineUpsampleModel.InputFolder}"
 								 VerticalAlignment="Center"
 								 HorizontalAlignment="Left"
 								 FontSize="12"/>
-
+						
 						<Button Grid.Column="2"
-								Name="btnImportSearchFolder"
+								Name="bttnImportSearchFolder"
 								Content="Search Folder"
 								Command="{Binding ClkImportSearchFolder}"
 								Width="100"
 								Height="25"
 								HorizontalAlignment="Left"
 								VerticalAlignment="Center"
-								VerticalContentAlignment="Center"
 								HorizontalContentAlignment="Center"
+								VerticalContentAlignment="Center"
 								Margin="5"
 								FontSize="12"/>
 
 						<Button Grid.Column="3"
-								Name="btnUpsample"
-								Command="{Binding ConvertAsync}"
-								Content="Convert"
+								Name="btnCombineUpsample"
+								Command="{Binding CombineUpsampleAsync}"
+								Content="Combine Upsample"
 								Height="30"
-								Width="90"
+								Width="150"
 								CornerRadius="10"
-								Margin="10 10"
 								VerticalAlignment="Center"
 								HorizontalAlignment="Center"
 								VerticalContentAlignment="Center"
 								HorizontalContentAlignment="Center"
 								FontSize="12"
-								IsEnabled="{Binding !NMExporterModel.DisableUpsample}"/>
-
+								IsEnabled="{Binding !CombineUpsampleModel.DisableUpsample}"/>
 					</Grid>
 
 					<Grid Grid.Row="1">
@@ -202,9 +193,9 @@
 							<ColumnDefinition Width="150"/>
 							<ColumnDefinition Width="150"/>
 						</Grid.ColumnDefinitions>
-
+						
 						<TextBlock Grid.Column="0"
-								Text="Output Folder:"
+								   Text="Output Folder"
 								   Height="25"
 								   Margin="10 10"
 								   HorizontalAlignment="Left"
@@ -215,11 +206,11 @@
 								 Height="25"
 								 Width="300"
 								 Margin="10 10"
-								 Text="{Binding NMExporterModel.OutputFolder}"
+								 Template="{Binding CombineUpsampleModel.OutputFolder}"
 								 VerticalAlignment="Center"
 								 HorizontalAlignment="Left"
 								 FontSize="12"/>
-
+						
 						<Button Grid.Column="2"
 								Name="btnExportSearchFolder"
 								Content="Search Folder"
@@ -228,91 +219,13 @@
 								Height="25"
 								HorizontalAlignment="Left"
 								VerticalAlignment="Center"
-								VerticalContentAlignment="Center"
 								HorizontalContentAlignment="Center"
+								VerticalContentAlignment="Center"
 								Margin="5"
 								FontSize="12"/>
 					</Grid>
-
-				</Grid>
-
-				<Grid Grid.Row="1" Margin="100 25" Height="200" Width="100" HorizontalAlignment="Left" VerticalAlignment="Top">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="40"/>
-						<RowDefinition Height="40"/>
-						<RowDefinition Height="40"/>
-						<RowDefinition Height="40"/>
-						<RowDefinition Height="40"/>
-						<RowDefinition Height="40"/>
-					</Grid.RowDefinitions>
-
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="60"/>
-						<ColumnDefinition Width="100"/>
-					</Grid.ColumnDefinitions>
-
-					<TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" VerticalAlignment="Center" Margin="-70 0"
-							   Text="File types to process:"/>
-
-					<TextBlock Grid.Row="1"
-							   Grid.Column="0"
-							   Text="Firings"
-							   VerticalAlignment="Center"
-							   HorizontalAlignment="Center"/>
-					<CheckBox Name="CBFiring"
-							  Grid.Row="1"
-							  Grid.Column="1"
-							  IsChecked="{Binding NMExporterModel.SelectFirings}"
-							  />
-
-					<TextBlock Grid.Row="2"
-							   Grid.Column="0"
-							   Text="MFR"
-							   VerticalAlignment="Center"
-							   HorizontalAlignment="Center"/>
-					<CheckBox Name="CBMFR"
-							  Grid.Row="2"
-							  Grid.Column="1"
-							  IsChecked="{Binding NMExporterModel.SelectMFR}"
-							  />
-
-					<TextBlock Grid.Row="3"
-							   Grid.Column="0"
-							   Text="MUAPs"
-							   VerticalAlignment="Center"
-							   HorizontalAlignment="Center"/>
-					<CheckBox Name="CBMUAPs"
-							  Grid.Row="3"
-							  Grid.Column="1"
-							  IsChecked="{Binding NMExporterModel.SelectMUAPS}"
-							  />
-
-					<TextBlock Grid.Row="4"
-							   Grid.Column="0"
-							   Text="Stats"
-							   VerticalAlignment="Center"
-							   HorizontalAlignment="Center"/>
-					<CheckBox Name="CBStats"
-							  IsChecked="{Binding NMExporterModel.SelectStats}"
-							  Grid.Row="4"
-							  Grid.Column="1"
-							 />
-
-					<TextBlock Grid.Row="5"
-							   Grid.Column="0"
-							   Text="All"
-							   VerticalAlignment="Center"
-							   HorizontalAlignment="Center"/>
-					<CheckBox Name="CBAll"
-							  IsChecked="{Binding NMExporterModel.SelectAll}"
-							  Grid.Row="5"
-							  Grid.Column="1"
-							  Command="{Binding ClkAll}"
-							  />
-
 				</Grid>
 			</Grid>
 		</DockPanel>
 	</Grid>
-
 </UserControl>

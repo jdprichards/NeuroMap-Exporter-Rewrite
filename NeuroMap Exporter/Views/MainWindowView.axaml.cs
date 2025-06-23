@@ -18,5 +18,13 @@ namespace NeuroMap_Exporter.Views
         {
             Environment.Exit(0);
         }
+
+        private void clkHome(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainWindowViewModel viewModel)
+            {
+                viewModel.NavigatePage("Home");
+            }
+        }
     }
 }

@@ -22,7 +22,8 @@ namespace NeuroMap_Exporter.ViewModels
         {
             {"Home",  new HomeViewModel() },
             {"NM Exporter", new NMExporterViewModel() },
-            {"EMG-IMU Upsampler",  new UpsamplerViewModel()}
+            {"EMG-IMU Upsampler",  new UpsamplerViewModel()},
+            {"Combine Upsampler", new CombineUpsampleViewModel() }
         };
 
 
