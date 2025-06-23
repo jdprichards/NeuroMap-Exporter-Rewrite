@@ -4,6 +4,314 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
 			 xmlns:vm="using:NeuroMap_Exporter.ViewModels"
+			 x:DataType="vm:UpsamplerViewModel"
              x:Class="NeuroMap_Exporter.Views.UpsamplerView">
-  Currently Rewriting
+	<Design.DataContext>
+		<vm:UpsamplerViewModel/>
+	</Design.DataContext>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="50"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+
+		<TextBlock Grid.Row="0"
+				   Text="NeuroMap Exporter"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Center"
+				   FontWeight="DemiBold"/>
+
+		<DockPanel Grid.Row="1">
+			<Grid Name="ProgressGrid"
+						  DockPanel.Dock="Bottom"
+						  Margin="0 0"
+						  IsVisible="{Binding UpsamplerModel.DisableUpsample}">
+
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="150"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="150"/>
+				</Grid.ColumnDefinitions>
+
+				<Grid Name="ProgressLabels">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="10"/>
+					</Grid.RowDefinitions>
+
+					<TextBlock Grid.Row="0"
+							   FontSize="12"
+							   Text="File Progress"
+							   HorizontalAlignment="Center"
+							   VerticalAlignment="Center"/>
+					<TextBlock Grid.Row="1"
+							   FontSize="12"
+							   Text="Row Progress"
+							   HorizontalAlignment="Center"
+							   VerticalAlignment="Center"/>
+				</Grid>
+
+				<Border Grid.Column="1">
+					<Border.Effect>
+						<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
+					</Border.Effect>
+
+					<Grid Name="ProgressBars">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height="10"/>
+						</Grid.RowDefinitions>
+
+						<ProgressBar Grid.Row="0"
+									 Name="FilesProgress"
+									 Value="{Binding UpsamplerModel.FilePercentage}"
+									 Height="15"
+									 Minimum="0"
+									 Maximum="100"
+									 Margin="5"
+									 BorderThickness="1"
+									 BorderBrush="Gray"/>
+						<TextBlock Grid.Row="0"
+								   Name="FilesPercent"
+								   Text="{Binding UpsamplerModel.FilePercentageString}"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+
+						<ProgressBar Grid.Row="1"
+									 Name="RowsProgress"
+									 Value="{Binding UpsamplerModel.RowPercentage}"
+									 Height="15"
+									 Minimum="0"
+									 Maximum="100"
+									 Margin="5"
+									 BorderThickness="1"
+									 BorderBrush="Gray"/>
+
+						<TextBlock Grid.Row="1"
+								   Name="RowsPercent"
+								   Text="{Binding UpsamplerModel.RowPercentageString}"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+					</Grid>
+
+				</Border>
+
+				<Grid Grid.Column="2"
+					  Name="ProgressAmounts">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="10"/>
+					</Grid.RowDefinitions>
+
+					<TextBlock Grid.Row="0"
+							   Name="FilesRemaining"
+							   FontSize="12"
+							   FontWeight="DemiBold"
+							   TextAlignment="Center"
+							   HorizontalAlignment="Left"
+							   VerticalAlignment="Center"
+							   Text="{Binding UpsamplerModel.FileCompleteRatio}"/>
+
+					<TextBlock Grid.Row="1"
+							   Name="RowsRemaining"
+							   FontSize="12"
+							   FontWeight="DemiBold"
+							   TextAlignment="Center"
+							   HorizontalAlignment="Left"
+							   VerticalAlignment="Center"
+							   Text="{Binding UpsamplerModel.RowCompleteRatio}"/>
+
+				</Grid>
+			</Grid>
+
+			<Grid DockPanel.Dock="Top" Margin="25 0">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="80"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+
+				<Grid Grid.Row="0">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="50"/>
+						<RowDefinition Height="50"/>
+					</Grid.RowDefinitions>
+
+					<Grid Grid.Row="0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="125"/>
+							<ColumnDefinition Width="300"/>
+							<ColumnDefinition Width="150"/>
+							<ColumnDefinition Width="150"/>
+						</Grid.ColumnDefinitions>
+
+						<TextBlock Grid.Column="0"
+								Text="Input Folder:"
+								   Height="25"
+								   Margin="10 10"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   FontSize="12"/>
+
+						<TextBox Grid.Column="1"
+								 Height="25"
+								 Width="300"
+								 Margin="10 10"
+								 Text="{Binding UpsamplerModel.InputFolder}"
+								 VerticalAlignment="Center"
+								 HorizontalAlignment="Left"
+								 FontSize="12"/>
+
+						<Button Grid.Column="2"
+								Name="btnImportSearchFolder"
+								Content="Search Folder"
+								Command="{Binding ClkImportSearchFolder}"
+								Width="100"
+								Height="25"
+								HorizontalAlignment="Left"
+								VerticalAlignment="Center"
+								VerticalContentAlignment="Center"
+								HorizontalContentAlignment="Center"
+								Margin="5"
+								FontSize="12"/>
+
+						<Button Grid.Column="3"
+								Name="btnUpsample"
+								Command="{Binding UpsampleAsync}"
+								Content="Upsample"
+								Height="30"
+								Width="90"
+								CornerRadius="10"
+								Margin="10 10"
+								VerticalAlignment="Center"
+								HorizontalAlignment="Center"
+								VerticalContentAlignment="Center"
+								HorizontalContentAlignment="Center"
+								FontSize="12"
+								IsEnabled="{Binding !UpsamplerModel.DisableUpsample}"/>
+
+					</Grid>
+
+					<Grid Grid.Row="1">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="125"/>
+							<ColumnDefinition Width="300"/>
+							<ColumnDefinition Width="150"/>
+							<ColumnDefinition Width="150"/>
+						</Grid.ColumnDefinitions>
+
+						<TextBlock Grid.Column="0"
+								Text="Output Folder:"
+								   Height="25"
+								   Margin="10 10"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   FontSize="12"/>
+
+						<TextBox Grid.Column="1"
+								 Height="25"
+								 Width="300"
+								 Margin="10 10"
+								 Text="{Binding UpsamplerModel.OutputFolder}"
+								 VerticalAlignment="Center"
+								 HorizontalAlignment="Left"
+								 FontSize="12"/>
+
+						<Button Grid.Column="2"
+								Name="btnExportSearchFolder"
+								Content="Search Folder"
+								Command="{Binding ClkExportSearchFolder}"
+								Width="100"
+								Height="25"
+								HorizontalAlignment="Left"
+								VerticalAlignment="Center"
+								VerticalContentAlignment="Center"
+								HorizontalContentAlignment="Center"
+								Margin="5"
+								FontSize="12"/>
+					</Grid>
+
+				</Grid>
+				<!--
+				<Grid Grid.Row="1" Margin="100 25" Height="200" Width="100" HorizontalAlignment="Left" VerticalAlignment="Top">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition Height="40"/>
+					</Grid.RowDefinitions>
+
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="60"/>
+						<ColumnDefinition Width="100"/>
+					</Grid.ColumnDefinitions>
+
+					<TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" VerticalAlignment="Center" Margin="-70 0"
+							   Text="File types to process:"/>
+
+					<TextBlock Grid.Row="1"
+							   Grid.Column="0"
+							   Text="Firings"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBFiring"
+							  Grid.Row="1"
+							  Grid.Column="1"
+							  IsChecked=""
+							  />
+
+					<TextBlock Grid.Row="2"
+							   Grid.Column="0"
+							   Text="MFR"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBMFR"
+							  Grid.Row="2"
+							  Grid.Column="1"
+							  IsChecked=""
+							  />
+
+					<TextBlock Grid.Row="3"
+							   Grid.Column="0"
+							   Text="MUAPs"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBMUAPs"
+							  Grid.Row="3"
+							  Grid.Column="1"
+							  IsChecked=""
+							  />
+
+					<TextBlock Grid.Row="4"
+							   Grid.Column="0"
+							   Text="Stats"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBStats"
+							  IsChecked=""
+							  Grid.Row="4"
+							  Grid.Column="1"
+							 />
+
+					<TextBlock Grid.Row="5"
+							   Grid.Column="0"
+							   Text="All"
+							   VerticalAlignment="Center"
+							   HorizontalAlignment="Center"/>
+					<CheckBox Name="CBAll"
+							  IsChecked=""
+							  Grid.Row="5"
+							  Grid.Column="1"
+							  Command=""
+							  />
+
+				</Grid>
+				-->
+			</Grid>
+		</DockPanel>
+	</Grid>
 </UserControl>
