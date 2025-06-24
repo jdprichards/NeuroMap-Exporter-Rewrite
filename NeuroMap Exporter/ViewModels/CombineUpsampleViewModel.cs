@@ -12,7 +12,7 @@ using static NeuroMap_Exporter.ViewModels.CombineUpsampleViewModel;
 namespace NeuroMap_Exporter.ViewModels
 {
 
-    
+
     public partial class CombineUpsampleViewModel : ViewModelBase
     {
         public CombineUpsampleModel CombineUpsampleModel { get; set; } = new CombineUpsampleModel();
@@ -128,7 +128,7 @@ namespace NeuroMap_Exporter.ViewModels
             return localPaths;
         }
 
-        public async Task<string[]> FindFilesInDirectoryAsync(string[] files, string Directory )
+        public async Task<string[]> FindFilesInDirectoryAsync(string[] files, string Directory)
         {
             string[] foundFiles = new string[0];
 
@@ -144,19 +144,42 @@ namespace NeuroMap_Exporter.ViewModels
             return foundFiles;
         }
 
+        public async Task<string[]> GetUniqueDirectories(string[] files)
+        {
+            string[] uniqueDirectories = new string[0];
+
+            foreach(string filePath in files)
+            {
+                Array.Resize(ref uniqueDirectories, uniqueDirectories.Length + 1);
+                string path = "";
+                string[] splitPath = filePath.Split("\\");
+                path = splitPath[0];
+                for (int i = 1; i < splitPath.Length - 1; i++) 
+                {
+                    path = Path.Combine(path, splitPath[i]);
+                }
+
+                uniqueDirectories[uniqueDirectories.Length - 1] = path;
+            }
+
+            uniqueDirectories = uniqueDirectories.Distinct().ToArray();
+
+            return uniqueDirectories;
+        }
+
         public async Task<FileTypeAndPath[]> PopulateFileTypeAndPathAsync(string[] localPaths)
         {
             FileTypeAndPath[] fileTypeAndPaths = new FileTypeAndPath[0];
-            string[] dictionairyPaths = [];
+            string[] directoryPaths = [];
 
             foreach (string path in localPaths)
             {
                 string[] splitPath = path.Split("\\");
-                dictionairyPaths = dictionairyPaths.Concat(splitPath.Take(splitPath.Length - 1)).ToArray();
+                directoryPaths = directoryPaths.Concat(splitPath.Take(splitPath.Length - 1)).ToArray();
             }
-            dictionairyPaths = dictionairyPaths.Distinct().ToArray();
+            directoryPaths = directoryPaths.Distinct().ToArray();
 
-            foreach (string path in dictionairyPaths)
+            foreach (string path in directoryPaths)
             {
                 string[] matchingFiles = await FindFilesInDirectoryAsync(localPaths, path);
 
@@ -165,9 +188,9 @@ namespace NeuroMap_Exporter.ViewModels
 
                 // Determine file type based on the file name or extension
 
-                string emgFilePath = matchingFiles.FirstOrDefault(f => f.EndsWith(".csv", StringComparison.OrdinalIgnoreCase));
-                string sensor1FilePath = matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 1)_MFR.txt", StringComparison.OrdinalIgnoreCase));
-                string sensor2FilePath = matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 2)_MFR.txt", StringComparison.OrdinalIgnoreCase));
+                string emgFilePath = Path.Combine(CombineUpsampleModel.InputFolder, matchingFiles.FirstOrDefault(f => f.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)));
+                string sensor1FilePath = Path.Combine(CombineUpsampleModel.InputFolder, matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 1)_MFR.txt", StringComparison.OrdinalIgnoreCase)));
+                string sensor2FilePath = Path.Combine(CombineUpsampleModel.InputFolder, matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 2)_MFR.txt", StringComparison.OrdinalIgnoreCase)));
 
 
                 FileTypeAndPath fileTypeAndPath = new FileTypeAndPath
@@ -176,10 +199,10 @@ namespace NeuroMap_Exporter.ViewModels
                     Sensor1FilePath = sensor1FilePath ?? string.Empty,
                     Sensor2FilePath = sensor2FilePath ?? string.Empty
                 };
-                    
+
                 Array.Resize(ref fileTypeAndPaths, fileTypeAndPaths.Length + 1);
                 fileTypeAndPaths[fileTypeAndPaths.Length - 1] = fileTypeAndPath;
-                
+
             }
 
 
@@ -202,32 +225,34 @@ namespace NeuroMap_Exporter.ViewModels
 
             // Create Directory Layout at Output Folder
             string[] localPaths = await Task.Run(() => AsyncReturnLocalPaths(files));
-        
-            FileTypeAndPath[] fileTypesAndPaths = PopulateFileTypeAndPathAsync(localPaths).Result;
 
+            
+
+            string[] uniquePaths = GetUniqueDirectories(files).Result;
 
             Dispatcher.UIThread.Invoke(() =>
             {
                 CombineUpsampleModel.FileComplete = 0;
-                CombineUpsampleModel.FileAmount = files.Length;
+                CombineUpsampleModel.FileAmount = uniquePaths.Length * 4;
                 CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
                 CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
                 CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
             });
 
-            for (int i = 0; i < fileTypesAndPaths.Length; i++)
+            foreach (string uniquePath in uniquePaths)
             {
-                await Task.Run(() => CombineUpsampleFileAsync(fileTypesAndPaths[i]));
-                Dispatcher.UIThread.Invoke(() =>
+                files = [];
+                foreach (string fileEndExtension in fileEndExtensions)
                 {
-                    CombineUpsampleModel.FileComplete += 3;
-                    CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
-                    CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
-                    CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
-                
-                    CombineUpsampleModel.RowComplete = 0;
-                });
+                    files = files.Concat(Directory.GetFiles(uniquePath, "*" + fileEndExtension, SearchOption.AllDirectories)).ToArray();
+                }
 
+                FileTypeAndPath[] fileTypesAndPaths = PopulateFileTypeAndPathAsync(files).Result;
+
+                for (int i = 0; i < fileTypesAndPaths.Length; i++)
+                {
+                    await Task.Run(() => CombineUpsampleFileAsync(fileTypesAndPaths[i]));
+                }
             }
 
             CombineUpsampleModel.DisableUpsample = false;
@@ -238,6 +263,9 @@ namespace NeuroMap_Exporter.ViewModels
             try
             {
                 string outputFileName = fileTypesAndPaths.EMGFilePath.Split("\\").Last().Replace(".csv", ".txt");
+                string outputFilePath = Path.Combine(CombineUpsampleModel.OutputFolder, outputFileName);
+
+                string directoryName = outputFileName.Replace(".txt", "");
 
                 Dispatcher.UIThread.Invoke(() =>
                 {
@@ -253,41 +281,65 @@ namespace NeuroMap_Exporter.ViewModels
                 float sensor2RowRatio = (float)emgRowCount / sensor2RowCount;
 
                 // Create tmp directory to store temporary files
-                string tmpDirectory = Path.Combine(CombineUpsampleModel.OutputFolder, "tmp");
-                if (!Directory.Exists(tmpDirectory))
+                string tempDirectory = Path.Combine(CombineUpsampleModel.OutputFolder, "temp", directoryName);
+
+                if (!Directory.Exists(tempDirectory))
                 {
-                    Directory.CreateDirectory(tmpDirectory);
+                    Directory.CreateDirectory(tempDirectory);
                 }
 
-                string tempEMGFileName = Path.Combine(tmpDirectory, outputFileName);
-
-                UpsampleEMGFileAsync(fileTypesAndPaths.EMGFilePath, tempEMGFileName).Wait();
-
-
-               
-                // Creating Main Output File
-                StreamWriter sw = new StreamWriter(CombineUpsampleModel.OutputFolder + outputFileName);
-
-                // Read File
-                string[] lines = await File.ReadAllLinesAsync("file");
-                // Process Lines
-                List<string> processedLines = new List<string>();
-                foreach (string line in lines)
-                {
-                    // Example processing: just trim whitespace
-                    processedLines.Add(line.Trim());
-                }
-
-
-
-                // Write to New File
-                string outputFilePath = Path.Combine(CombineUpsampleModel.OutputFolder, outputFileName);
                 
-                await File.WriteAllLinesAsync(outputFilePath, processedLines);
+                string tempEMGFilePath = Path.Combine(tempDirectory, "EMG-IMU temp.csv");
+                string tempSensor1FilePath = Path.Combine(tempDirectory, "Sensor1 temp.csv");
+                string tempSensor2FilePath = Path.Combine(tempDirectory, "Sensor2 temp.csv");
 
+                UpsampleEMGFileAsync(fileTypesAndPaths.EMGFilePath, tempEMGFilePath).Wait();
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    CombineUpsampleModel.FileComplete++;
+                    CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
+                    CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
+                    CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
 
+                    CombineUpsampleModel.RowComplete = 0;
+                });
 
-                Directory.Delete(tmpDirectory, true); // Delete tmp directory after processing
+                UpsampleSensorFileAsync(fileTypesAndPaths.Sensor1FilePath, tempSensor1FilePath, tempEMGFilePath).Wait();
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    CombineUpsampleModel.FileComplete++;
+                    CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
+                    CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
+                    CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
+
+                    CombineUpsampleModel.RowComplete = 0;
+                });
+
+                UpsampleSensorFileAsync(fileTypesAndPaths.Sensor2FilePath, tempSensor2FilePath, tempEMGFilePath).Wait();
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    CombineUpsampleModel.FileComplete++;
+                    CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
+                    CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
+                    CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
+
+                    CombineUpsampleModel.RowComplete = 0;
+                });
+
+                CombineEMGandSensorFiles(tempEMGFilePath, tempSensor1FilePath, tempSensor2FilePath, outputFilePath).Wait();
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    CombineUpsampleModel.FileComplete++;
+                    CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
+                    CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
+                    CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
+
+                    CombineUpsampleModel.RowComplete = 0;
+                });
+
+                //Directory.Delete(tmpDirectory, true); // Delete tmp directory after processing
+
+                System.Console.Write("Finished Combine Upsample");
             }
             catch (Exception ex)
             {
@@ -299,15 +351,15 @@ namespace NeuroMap_Exporter.ViewModels
         public async Task UpsampleEMGFileAsync(string emgFilePath, string tempEMGFileName)
         {
             // Create temporary file for upsampled EMG-IMU data
-            tempEMGFileName = tempEMGFileName.Replace(".txt", " temp.csv"); // Ensure the file path is correct
-            StreamWriter TempEMGsw = new StreamWriter(tempEMGFileName);
 
-            StreamReader EMGsr = new StreamReader(emgFilePath);
+            StreamWriter TempEMGSw = new StreamWriter(tempEMGFileName);
 
-            string allData = EMGsr.ReadToEnd();
-            EMGsr.Close();
+            StreamReader EMGSr = new StreamReader(emgFilePath);
 
-            string[] dataLineSplit = allData.Replace("\r","").Split("\n"); // Replace line breaks with commas for easier processing
+            string allData = EMGSr.ReadToEnd();
+            EMGSr.Close();
+
+            string[] dataLineSplit = allData.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
 
             string[,] dataSplit = new string[dataLineSplit.Length, dataLineSplit[0].Split(",").Length];
 
@@ -342,7 +394,7 @@ namespace NeuroMap_Exporter.ViewModels
                 }
             }
 
-            EMGsr = new StreamReader(emgFilePath); // Return Stream Reader to start of file
+            EMGSr = new StreamReader(emgFilePath); // Return Stream Reader to start of file
 
             // Initialize temporary EMG file with headers and first data line
             // Note: The first data line is assumed to be all zeroes, as per the original code logic
@@ -354,10 +406,10 @@ namespace NeuroMap_Exporter.ViewModels
                 writeHeaders += "," + header;
                 writeFirstDataLine += ",0"; // Assuming the first data line is all zeroes
             }
-            
+
             // Write Headers to Temporary EMG File
-            TempEMGsw.WriteLine(writeHeaders);
-            TempEMGsw.WriteLine(writeFirstDataLine); 
+            TempEMGSw.WriteLine(writeHeaders);
+            TempEMGSw.WriteLine(writeFirstDataLine);
 
             float[] nextTime = new float[EMGHeaders.Length];
             int[] currentRow = new int[EMGHeaders.Length];
@@ -423,9 +475,9 @@ namespace NeuroMap_Exporter.ViewModels
 
 
                     if (readingFile)
-                        TempEMGsw.WriteLine(outRow);
+                        TempEMGSw.WriteLine(outRow);
 
-                    
+
 
                     Dispatcher.UIThread.Invoke(() =>
                     {
@@ -437,12 +489,346 @@ namespace NeuroMap_Exporter.ViewModels
                     });
                 } while (readingFile);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Exception exception = ex;
             }
 
-            TempEMGsw.Close();
+            TempEMGSw.Close();
+        }
+
+        public async Task UpsampleSensorFileAsync(string sensorFilePath, string tempSensorFileName, string tempEMGFilePath)
+        {
+            // Create temporary file for upsampled sensor data
+
+            StreamWriter TempSensorSw = new StreamWriter(tempSensorFileName);
+            StreamReader SensorSr = new StreamReader(sensorFilePath);
+            StreamReader EMGSr = new StreamReader(tempEMGFilePath);
+
+            string allData = SensorSr.ReadToEnd();
+            SensorSr.Close();
+
+            string[] dataLineSplit = allData.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
+            string[,] dataSplit = new string[dataLineSplit.Length, dataLineSplit[0].Split("\t").Length]; // .txt files are seperated by tabs (\t)
+
+            for (int i = 0; i < dataLineSplit.Length; i++)
+            {
+                for (int j = 0; j < dataLineSplit[i].Split("\t").Length; j++)
+                {
+                    dataSplit[i, j] = dataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
+                }
+            }
+            // Get None time series headers from Sensor file
+            string[] sensorHeaders = new string[0];
+            string[] fullHeaders = dataLineSplit[0].Split("\t"); // Read headers from Sensor file
+            foreach (string header in fullHeaders)
+            {
+                if (!header.Contains("Time"))
+                {
+                    sensorHeaders = sensorHeaders.Append(header).ToArray();
+                }
+            }
+
+            float lowestTime = float.MaxValue;
+
+            if (float.TryParse(dataSplit[2, 0], out float timeValue) && timeValue < lowestTime && timeValue != 0)
+            {
+                lowestTime = timeValue;
+            }
+
+            // Initialize temporary Sensor file with headers and first data line
+            // Note: The first data line is assumed to be all zeroes, as per the original code logic
+            string writeHeaders = "Time";
+            string writeFirstDataLine = "0";
+            foreach (string header in sensorHeaders)
+            {
+                writeHeaders += "," + header;
+            }
+
+            float currentTime = 0f;
+            // Write Headers to Temporary Sensor File
+            TempSensorSw.WriteLine(writeHeaders);
+
+            EMGSr.ReadLine(); // Skip the first line of the EMG file (headers)
+
+            bool readingFile = true;
+
+            float emgTime = 0f;
+            float nextSensorTime = 0f;
+
+            string emgLine = "";
+
+            int currentRow = 1; // Start from the third row since the first two rows are headers and first data line
+            string outRow = "";
+
+
+            try
+            {
+                do
+                {
+                    emgLine = EMGSr.ReadLine();
+                    if (emgLine != "" && emgLine != null)
+                    {
+                        emgTime = float.Parse(emgLine.Split(",")[0]); // Get tme from EMG file
+                    }
+                    else
+                        break; // If no time data, break the loop
+
+                    if (dataSplit[currentRow, 0] != "" && dataSplit[currentRow, 0] != null)
+                    {
+                        nextSensorTime = float.Parse(dataSplit[currentRow + 1, 0]); // Get time from Sensor file
+                    }
+                    else
+                        break; // If no time data, break the loop
+
+
+                    if (nextSensorTime < emgTime)
+                    {
+                        currentRow++;
+                    }
+
+                    outRow = emgTime + ""; // Start the output row with the EMG time
+
+                    for (int i = 0; i < sensorHeaders.Length; i++)
+                    {
+                        if (currentRow < dataSplit.GetLength(0) && dataSplit[currentRow, 0] != "" && dataSplit[currentRow, 0] != null)
+                        {
+                            if (float.TryParse(dataSplit[currentRow, 0], out float sensorTime))
+                            {
+                                outRow += "," + dataSplit[currentRow, i + 1]; // Append the sensor data
+                            }
+                            else
+                            {
+                                outRow += ",0"; // If no data, append zero
+                            }
+                        }
+                    }
+
+                    if (currentRow >= dataSplit.GetLength(0) || dataSplit[currentRow, 0] == "" || dataSplit[currentRow, 0] == null)
+                    {
+                        readingFile = false; // If any of the time data is not null, we are still reading the file
+                    }
+
+                    TempSensorSw.WriteLine(outRow); // Write the output row to the temporary sensor file
+
+                } while (readingFile);
+            }
+            catch(Exception ex)
+            {
+                Exception e = ex;
+            }
+
+            TempSensorSw.Close();
+            EMGSr.Close();
+        }
+
+        public async Task CombineEMGandSensorFiles(string tempEMGFilePath, string tempSensor1FilePath, string tempSensor2FilePath, string outputFilePath)
+        {
+            StreamReader tempEmgSr = new StreamReader(tempEMGFilePath);
+            StreamReader tempSensor1Sr = new StreamReader(tempSensor1FilePath);
+            StreamReader tempSensor2Sr = new StreamReader(tempSensor2FilePath);
+
+            // Creating Main Output File
+            StreamWriter outputSw = new StreamWriter(outputFilePath);
+
+            string allEMGData = tempEmgSr.ReadToEnd();
+            string allSensor1Data = tempSensor1Sr.ReadToEnd();
+            string allSensor2Data = tempSensor2Sr.ReadToEnd();
+            tempEmgSr.Close();
+            tempSensor1Sr.Close();
+            tempSensor2Sr.Close();
+
+            string[] emgDataLineSplit = allEMGData.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
+            string[] sensor1DataLineSplit = allSensor1Data.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
+            string[] sensor2DataLineSplit = allSensor2Data.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
+
+            string[,] emgDataSplit = new string[emgDataLineSplit.Length, emgDataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
+            string[,] sensor1DataSplit = new string[sensor1DataLineSplit.Length, sensor1DataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
+            string[,] sensor2DataSplit = new string[sensor2DataLineSplit.Length, sensor2DataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
+
+
+            for (int i = 0; i < emgDataLineSplit.Length; i++)
+            {
+                for (int j = 0; j < emgDataLineSplit[i].Split("\t").Length; j++)
+                {
+                    emgDataSplit[i, j] = emgDataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
+                }
+            }
+
+            for (int i = 0; i < sensor1DataLineSplit.Length; i++)
+            {
+                for (int j = 0; j < sensor1DataLineSplit[i].Split("\t").Length; j++)
+                {
+                    sensor1DataSplit[i, j] = sensor1DataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
+                }
+            }
+
+            for (int i = 0; i < sensor2DataLineSplit.Length; i++)
+            {
+                for (int j = 0; j < sensor2DataLineSplit[i].Split("\t").Length; j++)
+                {
+                    sensor2DataSplit[i, j] = sensor2DataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
+                }
+            }
+
+
+            string outputLine = "";
+            string allHeaders = "";
+
+
+            string[] emgHeaders = emgDataLineSplit[0].Split(",");
+            string[] sensor1Headers = sensor1DataLineSplit[0].Split(",");
+            string[] sensor2Headers = sensor2DataLineSplit[0].Split(",");
+
+            // Combine headers from all three files
+            for (int i = 0; i < emgHeaders.Length; i++)
+            {
+                if (emgHeaders[i] != "Time" && emgHeaders[i] != "")
+                {
+                    allHeaders += "\t" + emgHeaders[i]; // EMG headers
+                }
+            }
+            for (int i = 0; i < sensor1Headers.Length; i++)
+            {
+                if (sensor1Headers[i] != "Time" && sensor1Headers[i] != "")
+                {
+                    allHeaders += "\t" + "Sensor_1_" + sensor1Headers[i]; // Sensor 1 headers
+                }
+            }
+            for (int i = 0; i < sensor2Headers.Length; i++)
+            {
+                if (sensor2Headers[i] != "Time" && sensor2Headers[i] != "")
+                {
+                    allHeaders += "\t" + "Sensor_2_" + sensor2Headers[i]; // Sensor 2 headers
+                }
+            }
+
+            int numHeaderrs = allHeaders.Split("\t").Length;
+
+            // Write headers to the output file
+
+
+            // file01 row
+            outputLine = "\tfile01\tfile01";
+            foreach (string header in allHeaders.Split("\t"))
+            {
+                if (header != "")
+                    outputLine += "\tfile01"; // Add tab before each header
+            }
+            outputSw.WriteLine(outputLine);
+
+            // time Analogtime row
+            outputLine = "\tTIME\tANALOGTIME";
+            foreach (string header in allHeaders.Split("\t"))
+            {
+                if (header != "")
+                    outputLine += "\t" + header; // Add tab before each header
+            }
+            outputSw.WriteLine(outputLine);
+
+            // Frame_Numbers Analog row
+            outputLine = "\tFRAME_NUMBERS\tFRAME_NUMBERS";
+            foreach (string header in allHeaders.Split("\t"))
+            {
+                if (header != "")
+                    outputLine += "\t" + "ANALOG"; // Add tab before each header
+            }
+            outputSw.WriteLine(outputLine);
+
+            outputLine = "\tORIGINAL\tORIGINAL"; // New line after headers
+            foreach (string header in allHeaders.Split("\t"))
+            {
+                if (header != "")
+                    outputLine += "\t" + "ORIGINAL"; // Add tab before each header
+            }
+            outputSw.WriteLine(outputLine);
+
+            // ITEM row
+            outputLine = "ITEM\t0\t0"; // New line after headers
+            foreach (string header in allHeaders.Split("\t"))
+            {
+                if (header != "")
+                    outputLine += "\t" + "0"; // Add tab before each header
+            }
+            outputSw.WriteLine(outputLine);
+
+            bool readFiles = true;
+            int currentItem = 1; // Start from 1
+
+
+            string[] emgDataLine;
+            string[] sensor1DataLine;
+            string[] sensor2DataLine;
+            float time = 0f;
+            try
+            {
+                // Read lines from all three files and combine them
+                do
+                {
+                    emgDataLine = emgDataLineSplit[currentItem].Split(",");
+                    sensor1DataLine = sensor1DataLineSplit[currentItem].Split(",");
+                    sensor2DataLine = sensor2DataLineSplit[currentItem].Split(",");
+
+                    if (emgDataLine.First() != "")
+                        time = float.Parse(emgDataLine.First());
+
+                    outputLine = currentItem + "\t" + time  + "\t" + time;
+
+
+                    // Add EMG data
+                    if (emgDataLine[0] != "")
+                    {
+                        for (int i = 1; i < emgDataLine.Length; i++) // Start from 1 to skip the "Time" header
+                        {
+                            outputLine += "\t" + emgDataLine[i];
+                        }
+                    }
+                    else
+                        readFiles = false;
+
+                    // Add Sensor 1 data
+                    if (sensor1DataLine[0] != "")
+                    {
+                        for (int i = 1; i < sensor1DataLine.Length; i++) // Start from 1 to skip the "Time" header
+                        {
+                            outputLine += "\t" + sensor1DataLine[i];
+                        }
+                    }
+                    else
+                        readFiles = false;
+
+
+                    // Add Sensor 2 data
+                    if (sensor2DataLine[0] != "")
+                    {
+                        for (int i = 1; i < sensor2DataLine.Length; i++) // Start from 1 to skip the "Time" header
+                        {
+                            outputLine += "\t" + sensor2DataLine[i];
+                        }
+                    }
+                    else
+                        readFiles = false;
+
+                    // Write the combined line to the output file
+                    if (readFiles)
+                        outputSw.WriteLine(outputLine);
+
+                    currentItem++;
+
+
+                } while (readFiles);
+            }
+            catch(Exception e)
+            {
+                Exception exception = e;
+            }
+
+
+            tempEmgSr.Close();
+            tempSensor1Sr.Close();
+            tempSensor2Sr.Close();
+            outputSw.Flush();
+            outputSw.Close();
         }
     }
 }
