@@ -25,7 +25,8 @@
 		<DockPanel Grid.Row="1">
 			<Grid Name="ProgressGrid"
 				  DockPanel.Dock="Bottom"
-				  Margin="0 0">
+				  Margin="0 0"
+				  IsVisible="{Binding !CombineUpsampleModel.HideProgress}">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="150"/>
 					<ColumnDefinition Width="*"/>
@@ -59,7 +60,7 @@
 							<RowDefinition Height="30"/>
 							<RowDefinition Height="10"/>
 						</Grid.RowDefinitions>
-
+						
 						<ProgressBar Grid.Row="0"
 									 Name="FilesProgress"
 									 Value="{Binding CombineUpsampleModel.FilePercentage}"
@@ -77,14 +78,15 @@
 
 						<ProgressBar Grid.Row="1"
 									 Name="RowProgress"
+									 Value="{Binding CombineUpsampleModel.RowPercentage}"
 									 Height="15"
-									 MinHeight="0"
-									 MaxHeight="100"
+									 Minimum="0"
+									 Maximum="100"
 									 Margin="0"
 									 BorderThickness="1"
 									 BorderBrush="Gray"/>
 
-						<TextBlock Grid.Row="0"
+						<TextBlock Grid.Row="1"
 								   Name="RowPercent"
 								   Text="{Binding CombineUpsampleModel.RowPercentageString}"
 								   HorizontalAlignment="Center"
@@ -99,7 +101,7 @@
 						<RowDefinition Height="30"/>
 						<RowDefinition Height="10"/>
 					</Grid.RowDefinitions>
-
+					
 					<TextBlock Grid.Row="0"
 							   Name="FilesRemaining"
 							   FontSize="12"
@@ -206,7 +208,7 @@
 								 Height="25"
 								 Width="300"
 								 Margin="10 10"
-								 Template="{Binding CombineUpsampleModel.OutputFolder}"
+								 Text="{Binding CombineUpsampleModel.OutputFolder}"
 								 VerticalAlignment="Center"
 								 HorizontalAlignment="Left"
 								 FontSize="12"/>
@@ -223,6 +225,24 @@
 								VerticalContentAlignment="Center"
 								Margin="5"
 								FontSize="12"/>
+
+						<Grid Grid.Column="3">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="30"/>
+								<ColumnDefinition Width="*"/>
+							</Grid.ColumnDefinitions>
+						
+						
+							<CheckBox Grid.Column="0"
+									  IsChecked="{Binding CombineUpsampleModel.KeepTemporaryFiles}"/>
+							
+							<TextBlock Grid.Column="1"
+									   Text="Keep Temporay Files"
+									   TextAlignment="Center"
+									   HorizontalAlignment="Left"
+									   VerticalAlignment="Center"
+									   FontSize="12"/>
+						</Grid>
 					</Grid>
 				</Grid>
 			</Grid>

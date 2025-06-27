@@ -234,6 +234,7 @@ namespace NeuroMap_Exporter.ViewModels
             {
                 CombineUpsampleModel.FileComplete = 0;
                 CombineUpsampleModel.FileAmount = uniquePaths.Length * 4;
+
                 CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
                 CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
                 CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
@@ -255,6 +256,9 @@ namespace NeuroMap_Exporter.ViewModels
                 }
             }
 
+            if (!CombineUpsampleModel.KeepTemporaryFiles)
+                Directory.Delete(Path.Combine(CombineUpsampleModel.OutputFolder, "temp"), true); // Delete temp directory after processing
+
             CombineUpsampleModel.DisableUpsample = false;
         }
 
@@ -266,12 +270,6 @@ namespace NeuroMap_Exporter.ViewModels
                 string outputFilePath = Path.Combine(CombineUpsampleModel.OutputFolder, outputFileName);
 
                 string directoryName = outputFileName.Replace(".txt", "");
-
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    CombineUpsampleModel.RowComplete = 0;
-                    CombineUpsampleModel.RowAmount = 0; // Reset row count for each file
-                });
 
                 int emgRowCount = File.ReadLines(fileTypesAndPaths.EMGFilePath).Count();
                 int sensor1RowCount = File.ReadLines(fileTypesAndPaths.Sensor1FilePath).Count();
@@ -337,8 +335,6 @@ namespace NeuroMap_Exporter.ViewModels
                     CombineUpsampleModel.RowComplete = 0;
                 });
 
-                //Directory.Delete(tmpDirectory, true); // Delete tmp directory after processing
-
                 System.Console.Write("Finished Combine Upsample");
             }
             catch (Exception ex)
@@ -355,6 +351,16 @@ namespace NeuroMap_Exporter.ViewModels
             StreamWriter TempEMGSw = new StreamWriter(tempEMGFileName);
 
             StreamReader EMGSr = new StreamReader(emgFilePath);
+
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                CombineUpsampleModel.RowComplete = 0;
+                CombineUpsampleModel.RowAmount = File.ReadAllLines(emgFilePath).Count(); // Reset row count for each file
+
+                CombineUpsampleModel.RowCompleteRatio = CombineUpsampleModel.RowComplete + " / " + CombineUpsampleModel.RowAmount;
+                CombineUpsampleModel.RowPercentage = ((float)CombineUpsampleModel.RowComplete / (float)CombineUpsampleModel.RowAmount) * 100f;
+                CombineUpsampleModel.RowPercentageString = Math.Round(CombineUpsampleModel.RowPercentage, 2) + "%";
+            });
 
             string allData = EMGSr.ReadToEnd();
             EMGSr.Close();
@@ -482,11 +488,13 @@ namespace NeuroMap_Exporter.ViewModels
                     Dispatcher.UIThread.Invoke(() =>
                     {
                         CombineUpsampleModel.RowComplete++;
+
                         CombineUpsampleModel.RowCompleteRatio = CombineUpsampleModel.RowComplete + " / " + CombineUpsampleModel.RowAmount;
                         CombineUpsampleModel.RowPercentage = ((float)CombineUpsampleModel.RowComplete / (float)CombineUpsampleModel.RowAmount) * 100f;
                         CombineUpsampleModel.RowPercentageString = Math.Round(CombineUpsampleModel.RowPercentage, 2) + "%";
 
                     });
+
                 } while (readingFile);
             }
             catch (Exception ex)
@@ -504,6 +512,16 @@ namespace NeuroMap_Exporter.ViewModels
             StreamWriter TempSensorSw = new StreamWriter(tempSensorFileName);
             StreamReader SensorSr = new StreamReader(sensorFilePath);
             StreamReader EMGSr = new StreamReader(tempEMGFilePath);
+
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                CombineUpsampleModel.RowComplete = 0;
+                CombineUpsampleModel.RowAmount = File.ReadAllLines(tempEMGFilePath).Count(); // Reset row count for each file
+
+                CombineUpsampleModel.RowCompleteRatio = CombineUpsampleModel.RowComplete + " / " + CombineUpsampleModel.RowAmount;
+                CombineUpsampleModel.RowPercentage = ((float)CombineUpsampleModel.RowComplete / (float)CombineUpsampleModel.RowAmount) * 100f;
+                CombineUpsampleModel.RowPercentageString = Math.Round(CombineUpsampleModel.RowPercentage, 2) + "%";
+            });
 
             string allData = SensorSr.ReadToEnd();
             SensorSr.Close();
@@ -611,6 +629,15 @@ namespace NeuroMap_Exporter.ViewModels
 
                     TempSensorSw.WriteLine(outRow); // Write the output row to the temporary sensor file
 
+                    Dispatcher.UIThread.Invoke(() =>
+                    {
+                        CombineUpsampleModel.RowComplete++;
+
+                        CombineUpsampleModel.RowCompleteRatio = CombineUpsampleModel.RowComplete + " / " + CombineUpsampleModel.RowAmount;
+                        CombineUpsampleModel.RowPercentage = ((float)CombineUpsampleModel.RowComplete / (float)CombineUpsampleModel.RowAmount) * 100f;
+                        CombineUpsampleModel.RowPercentageString = Math.Round(CombineUpsampleModel.RowPercentage, 2) + "%";
+                    });
+
                 } while (readingFile);
             }
             catch(Exception ex)
@@ -630,6 +657,12 @@ namespace NeuroMap_Exporter.ViewModels
 
             // Creating Main Output File
             StreamWriter outputSw = new StreamWriter(outputFilePath);
+
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                CombineUpsampleModel.RowComplete = 0;
+                CombineUpsampleModel.RowAmount = File.ReadAllLines(tempEMGFilePath).Count(); // Reset row count for each file
+            });
 
             string allEMGData = tempEmgSr.ReadToEnd();
             string allSensor1Data = tempSensor1Sr.ReadToEnd();
@@ -814,6 +847,15 @@ namespace NeuroMap_Exporter.ViewModels
                         outputSw.WriteLine(outputLine);
 
                     currentItem++;
+
+                    Dispatcher.UIThread.Invoke(() =>
+                    {
+                        CombineUpsampleModel.RowComplete++;
+
+                        CombineUpsampleModel.RowCompleteRatio = CombineUpsampleModel.RowComplete + " / " + CombineUpsampleModel.RowAmount;
+                        CombineUpsampleModel.RowPercentage = ((float)CombineUpsampleModel.RowComplete / (float)CombineUpsampleModel.RowAmount) * 100f;
+                        CombineUpsampleModel.RowPercentageString = Math.Round(CombineUpsampleModel.RowPercentage, 2) + "%";
+                    });
 
 
                 } while (readFiles);

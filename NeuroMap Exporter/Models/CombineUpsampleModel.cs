@@ -28,7 +28,9 @@ namespace NeuroMap_Exporter.Models
         private string _filePercentageString;
 
         private bool _disableUpsample;
-        private bool _hideProgress;
+        private bool _hideProgress = true;
+
+        private bool _keepTemporaryFiles = false;
 
         public string InputFolder
         {
@@ -112,6 +114,12 @@ namespace NeuroMap_Exporter.Models
         {
             get => _hideProgress;
             set => SetProperty(ref _hideProgress, value);
+        }
+
+        public bool KeepTemporaryFiles
+        {
+            get => _keepTemporaryFiles;
+            set => SetProperty(ref _keepTemporaryFiles, value);
         }
     }
 }
