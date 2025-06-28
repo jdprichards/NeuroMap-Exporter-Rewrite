@@ -167,107 +167,132 @@ namespace NeuroMap_Exporter.ViewModels
             return uniqueDirectories;
         }
 
-        public async Task<FileTypeAndPath[]> PopulateFileTypeAndPathAsync(string[] localPaths)
+        public async Task<FileTypeAndPath[]> PopulateFileTypeAndPathAsync(string[] emgPaths)
         {
             FileTypeAndPath[] fileTypeAndPaths = new FileTypeAndPath[0];
-            string[] directoryPaths = [];
+            string[] matchingFiles = [];
+            string[] missingFiles = [];
 
-            foreach (string path in localPaths)
+            try
             {
-                string[] splitPath = path.Split("\\");
-                directoryPaths = directoryPaths.Concat(splitPath.Take(splitPath.Length - 1)).ToArray();
-            }
-            directoryPaths = directoryPaths.Distinct().ToArray();
-
-            foreach (string path in directoryPaths)
-            {
-                string[] matchingFiles = await FindFilesInDirectoryAsync(localPaths, path);
-
-                if (matchingFiles.Length == 0)
-                    continue;
-
-                // Determine file type based on the file name or extension
-
-                string emgFilePath = Path.Combine(CombineUpsampleModel.InputFolder, matchingFiles.FirstOrDefault(f => f.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)));
-                string sensor1FilePath = Path.Combine(CombineUpsampleModel.InputFolder, matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 1)_MFR.txt", StringComparison.OrdinalIgnoreCase)));
-                string sensor2FilePath = Path.Combine(CombineUpsampleModel.InputFolder, matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 2)_MFR.txt", StringComparison.OrdinalIgnoreCase)));
-
-
-                FileTypeAndPath fileTypeAndPath = new FileTypeAndPath
+                foreach (string path in emgPaths)
                 {
-                    EMGFilePath = emgFilePath ?? string.Empty,
-                    Sensor1FilePath = sensor1FilePath ?? string.Empty,
-                    Sensor2FilePath = sensor2FilePath ?? string.Empty
-                };
+                    
+                    matchingFiles = Directory.GetFiles(CombineUpsampleModel.InputFolder, "*" + path.Split("\\").Last().Replace(".csv", "*"), SearchOption.AllDirectories).ToArray();
 
-                Array.Resize(ref fileTypeAndPaths, fileTypeAndPaths.Length + 1);
-                fileTypeAndPaths[fileTypeAndPaths.Length - 1] = fileTypeAndPath;
+                    if (matchingFiles.Length == 0)
+                        continue;
 
+                    // Determine file type based on the file name or extension
+                    string emgFilePath = matchingFiles.FirstOrDefault(f => f.EndsWith(".csv", StringComparison.OrdinalIgnoreCase));
+                    string sensor1FilePath = matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 1)_MFR.txt", StringComparison.OrdinalIgnoreCase));
+                    string sensor2FilePath = matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 2)_MFR.txt", StringComparison.OrdinalIgnoreCase));
+
+                    // If any of the file paths are null or empty, skip this iteration
+                    if (string.IsNullOrEmpty(emgFilePath) || string.IsNullOrEmpty(sensor1FilePath) || string.IsNullOrEmpty(sensor2FilePath))
+                    {
+                        if(string.IsNullOrEmpty(emgFilePath))
+                        {
+                            missingFiles = missingFiles.Append("EMG file not found for: " + path).ToArray();
+                        }
+                        if (string.IsNullOrEmpty(sensor1FilePath))
+                        { 
+                            missingFiles = missingFiles.Append("Sensor 1 file not found for: " + path).ToArray();
+                        }
+                        if (string.IsNullOrEmpty(sensor2FilePath))
+                        {
+                            missingFiles = missingFiles.Append("Sensor 2 file not found for: " + path).ToArray();
+                        }
+                        continue; // Skip this iteration if any file path is null or empty
+                    }
+                    else
+                    {
+
+                        FileTypeAndPath fileTypeAndPath = new FileTypeAndPath
+                        {
+                            EMGFilePath = emgFilePath ?? string.Empty,
+                            Sensor1FilePath = sensor1FilePath ?? string.Empty,
+                            Sensor2FilePath = sensor2FilePath ?? string.Empty
+                        };
+
+                        Array.Resize(ref fileTypeAndPaths, fileTypeAndPaths.Length + 1);
+                        fileTypeAndPaths[fileTypeAndPaths.Length - 1] = fileTypeAndPath;
+                    }
+                }
             }
-
+            catch (Exception ex)
+            {
+                // Handle exceptions (e.g., log them, show a message to the user, etc.)
+                Console.WriteLine($"Error processing files: {ex.Message}");
+            }
 
             return fileTypeAndPaths;
         }
 
         public async Task CombineUpsampleAsync()
         {
+            string tempDirectory = Path.Combine(CombineUpsampleModel.OutputFolder, "temporary files");
+
             CombineUpsampleModel.DisableUpsample = true;
             CombineUpsampleModel.HideProgress = false;
 
             // All Files in Sub-Directories
-            string[] files = { };
+            string[] EMGFiles = { };
             string[] fileEndExtensions = { ".txt", ".csv" };
 
-            foreach (string fileEndExtension in fileEndExtensions)
-            {
-                files = files.Concat(Directory.GetFiles(CombineUpsampleModel.InputFolder, "*" + fileEndExtension, SearchOption.AllDirectories)).ToArray();
-            }
+
+            EMGFiles = EMGFiles.Concat(Directory.GetFiles(CombineUpsampleModel.InputFolder, "*" + ".csv", SearchOption.AllDirectories)).ToArray();
+            
 
             // Create Directory Layout at Output Folder
-            string[] localPaths = await Task.Run(() => AsyncReturnLocalPaths(files));
+            string[] localPaths = await Task.Run(() => AsyncReturnLocalPaths(EMGFiles));
+
+            string[] uniquePaths = GetUniqueDirectories(EMGFiles).Result;
 
             
 
-            string[] uniquePaths = GetUniqueDirectories(files).Result;
+            string[] files = [];
+            foreach (string uniquePath in uniquePaths)
+            {
+                
+                files = files.Concat(Directory.GetFiles(uniquePath, "*" + uniquePath.Split("\\").Last() + "*", SearchOption.AllDirectories)).ToArray();
+            }
+
+            FileTypeAndPath[] fileTypesAndPaths = PopulateFileTypeAndPathAsync(files).Result;
+
 
             Dispatcher.UIThread.Invoke(() =>
             {
                 CombineUpsampleModel.FileComplete = 0;
-                CombineUpsampleModel.FileAmount = uniquePaths.Length * 4;
+                CombineUpsampleModel.FileAmount = fileTypesAndPaths.Length * 4;
 
                 CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
                 CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
                 CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
             });
 
-            foreach (string uniquePath in uniquePaths)
+            for (int i = 0; i < fileTypesAndPaths.Length; i++)
             {
-                files = [];
-                foreach (string fileEndExtension in fileEndExtensions)
-                {
-                    files = files.Concat(Directory.GetFiles(uniquePath, "*" + fileEndExtension, SearchOption.AllDirectories)).ToArray();
-                }
-
-                FileTypeAndPath[] fileTypesAndPaths = PopulateFileTypeAndPathAsync(files).Result;
-
-                for (int i = 0; i < fileTypesAndPaths.Length; i++)
-                {
-                    await Task.Run(() => CombineUpsampleFileAsync(fileTypesAndPaths[i]));
-                }
+                await Task.Run(() => CombineUpsampleFileAsync(fileTypesAndPaths[i], tempDirectory));
             }
 
             if (!CombineUpsampleModel.KeepTemporaryFiles)
-                Directory.Delete(Path.Combine(CombineUpsampleModel.OutputFolder, "temp"), true); // Delete temp directory after processing
+                Directory.Delete(tempDirectory, true); // Delete temp directory after processing
 
             CombineUpsampleModel.DisableUpsample = false;
         }
 
-        public async Task CombineUpsampleFileAsync(FileTypeAndPath fileTypesAndPaths)
+        public async Task CombineUpsampleFileAsync(FileTypeAndPath fileTypesAndPaths, string tempDirectory)
         {
             try
             {
-                string outputFileName = fileTypesAndPaths.EMGFilePath.Split("\\").Last().Replace(".csv", ".txt");
-                string outputFilePath = Path.Combine(CombineUpsampleModel.OutputFolder, outputFileName);
+                string[] splitEMGPath = fileTypesAndPaths.EMGFilePath.Split("\\"); 
+                string outputFileName = splitEMGPath.Last().Replace(".csv", ".txt");
+                string[] reverseSubDirectory = splitEMGPath.Take(splitEMGPath.Length - 1).Reverse().ToArray();
+
+                // Create Output file path with subdirectory
+                string outputFilePath = Path.Combine(CombineUpsampleModel.OutputFolder, reverseSubDirectory[2], reverseSubDirectory[1], outputFileName);
+                
 
                 string directoryName = outputFileName.Replace(".txt", "");
 
@@ -279,7 +304,7 @@ namespace NeuroMap_Exporter.ViewModels
                 float sensor2RowRatio = (float)emgRowCount / sensor2RowCount;
 
                 // Create tmp directory to store temporary files
-                string tempDirectory = Path.Combine(CombineUpsampleModel.OutputFolder, "temp", directoryName);
+                tempDirectory = Path.Combine(tempDirectory, directoryName);
 
                 if (!Directory.Exists(tempDirectory))
                 {
@@ -287,9 +312,9 @@ namespace NeuroMap_Exporter.ViewModels
                 }
 
                 
-                string tempEMGFilePath = Path.Combine(tempDirectory, "EMG-IMU temp.csv");
-                string tempSensor1FilePath = Path.Combine(tempDirectory, "Sensor1 temp.csv");
-                string tempSensor2FilePath = Path.Combine(tempDirectory, "Sensor2 temp.csv");
+                string tempEMGFilePath = Path.Combine(tempDirectory, directoryName + "_(EMG-IMU)_temp.csv");
+                string tempSensor1FilePath = Path.Combine(tempDirectory, directoryName + "_(Sensor1)_temp.csv");
+                string tempSensor2FilePath = Path.Combine(tempDirectory, directoryName + "_(Sensor2)_temp.csv");
 
                 UpsampleEMGFileAsync(fileTypesAndPaths.EMGFilePath, tempEMGFilePath).Wait();
                 Dispatcher.UIThread.Invoke(() =>
@@ -324,7 +349,8 @@ namespace NeuroMap_Exporter.ViewModels
                     CombineUpsampleModel.RowComplete = 0;
                 });
 
-                CombineEMGandSensorFiles(tempEMGFilePath, tempSensor1FilePath, tempSensor2FilePath, outputFilePath).Wait();
+
+               CombineEMGandSensorFiles(tempEMGFilePath, tempSensor1FilePath, tempSensor2FilePath, outputFilePath).Wait();
                 Dispatcher.UIThread.Invoke(() =>
                 {
                     CombineUpsampleModel.FileComplete++;
@@ -654,6 +680,17 @@ namespace NeuroMap_Exporter.ViewModels
             StreamReader tempEmgSr = new StreamReader(tempEMGFilePath);
             StreamReader tempSensor1Sr = new StreamReader(tempSensor1FilePath);
             StreamReader tempSensor2Sr = new StreamReader(tempSensor2FilePath);
+
+            string[] splitOutputFilePath = outputFilePath.Split("\\");
+            string[] outputDirectoryArray = splitOutputFilePath.Take(splitOutputFilePath.Length - 1).ToArray();
+            string outputDirectory = "";
+
+            foreach(string directory in outputDirectoryArray)
+            {
+                outputDirectory += directory + "\\";
+            }
+
+            Directory.CreateDirectory(outputDirectory);
 
             // Creating Main Output File
             StreamWriter outputSw = new StreamWriter(outputFilePath);
