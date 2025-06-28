@@ -411,7 +411,9 @@ namespace NeuroMap_Exporter.ViewModels
             {
                 if (!header.Contains("X[s]"))
                 {
-                    EMGHeaders = EMGHeaders.Append(header).ToArray();
+                    string newHeader = header.Replace(":", "").Replace(" ", "_"); // Remove colons and replace spaces with underscores
+                    newHeader = newHeader.Replace("\"", ""); // Remove quotation mark
+                    EMGHeaders = EMGHeaders.Append(newHeader).ToArray();
                 }
             }
 
@@ -569,7 +571,9 @@ namespace NeuroMap_Exporter.ViewModels
             {
                 if (!header.Contains("Time"))
                 {
-                    sensorHeaders = sensorHeaders.Append(header).ToArray();
+                    string newHeader = header.Replace(":", "").Replace(" ", "_"); // Remove colons and replace spaces with underscores
+                    newHeader = newHeader.Replace("\"", ""); // Remove quotation mark
+                    sensorHeaders = sensorHeaders.Append(newHeader).ToArray();
                 }
             }
 
