@@ -155,6 +155,11 @@ namespace NeuroMap_Exporter.ViewModels
 
             for (int i = 0; i < files.Length; i++)
             {
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    NMExporterModel.CurrentFile = files[i];
+                });
+
                 await Task.Run(() => ConvertFileAsync(files[i], localPaths[i]));
                 Dispatcher.UIThread.Invoke(() =>
                 {

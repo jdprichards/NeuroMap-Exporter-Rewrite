@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Tmds.DBus.Protocol;
 using static NeuroMap_Exporter.ViewModels.CombineUpsampleViewModel;
 
 namespace NeuroMap_Exporter.ViewModels
@@ -21,8 +22,10 @@ namespace NeuroMap_Exporter.ViewModels
         public struct FileTypeAndPath
         {
             public string EMGFilePath { get; set; }
-            public string Sensor1FilePath { get; set; }
-            public string Sensor2FilePath { get; set; }
+            /*public string Sensor1FilePath { get; set; }
+            public string Sensor2FilePath { get; set; }*/
+
+            public string[] SensorFilePaths { get; set; }
         }
 
         public async Task<string> OpenOSDialog_ReturnString(bool boolFile)
@@ -173,11 +176,13 @@ namespace NeuroMap_Exporter.ViewModels
             string[] matchingFiles = [];
             string[] missingFiles = [];
 
+            string[] sensorPaths = [];
+
             try
             {
                 foreach (string path in emgPaths)
                 {
-                    
+                    sensorPaths = [];
                     matchingFiles = Directory.GetFiles(CombineUpsampleModel.InputFolder, "*" + path.Split("\\").Last().Replace(".csv", "*"), SearchOption.AllDirectories).ToArray();
 
                     if (matchingFiles.Length == 0)
@@ -185,11 +190,17 @@ namespace NeuroMap_Exporter.ViewModels
 
                     // Determine file type based on the file name or extension
                     string emgFilePath = matchingFiles.FirstOrDefault(f => f.EndsWith(".csv", StringComparison.OrdinalIgnoreCase));
+                    
+                    foreach (string filePath in matchingFiles)
+                    {
+                        if (filePath.Contains("_MFR.txt"))
+                            sensorPaths = sensorPaths.Append(filePath).ToArray();
+                    }
                     string sensor1FilePath = matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 1)_MFR.txt", StringComparison.OrdinalIgnoreCase));
                     string sensor2FilePath = matchingFiles.FirstOrDefault(f => f.EndsWith("(Sensor 2)_MFR.txt", StringComparison.OrdinalIgnoreCase));
 
                     // If any of the file paths are null or empty, skip this iteration
-                    if (string.IsNullOrEmpty(emgFilePath) || string.IsNullOrEmpty(sensor1FilePath) || string.IsNullOrEmpty(sensor2FilePath))
+                    /*if (string.IsNullOrEmpty(emgFilePath) || string.IsNullOrEmpty(sensor1FilePath) || string.IsNullOrEmpty(sensor2FilePath))
                     {
                         if(string.IsNullOrEmpty(emgFilePath))
                         {
@@ -204,20 +215,19 @@ namespace NeuroMap_Exporter.ViewModels
                             missingFiles = missingFiles.Append("Sensor 2 file not found for: " + path).ToArray();
                         }
                         continue; // Skip this iteration if any file path is null or empty
-                    }
-                    else
-                    {
+                    }*/
+                    /*else
+                    {*/
 
                         FileTypeAndPath fileTypeAndPath = new FileTypeAndPath
                         {
                             EMGFilePath = emgFilePath ?? string.Empty,
-                            Sensor1FilePath = sensor1FilePath ?? string.Empty,
-                            Sensor2FilePath = sensor2FilePath ?? string.Empty
+                            SensorFilePaths = sensorPaths
                         };
 
                         Array.Resize(ref fileTypeAndPaths, fileTypeAndPaths.Length + 1);
                         fileTypeAndPaths[fileTypeAndPaths.Length - 1] = fileTypeAndPath;
-                    }
+                    //}
                 }
             }
             catch (Exception ex)
@@ -259,12 +269,17 @@ namespace NeuroMap_Exporter.ViewModels
             }
 
             FileTypeAndPath[] fileTypesAndPaths = PopulateFileTypeAndPathAsync(files).Result;
-
+            int totalFiles = 0;
+            foreach( FileTypeAndPath fileTypeAndPath in fileTypesAndPaths)
+            {
+                totalFiles += fileTypeAndPath.SensorFilePaths.Length;
+                totalFiles += 2;
+            }
 
             Dispatcher.UIThread.Invoke(() =>
             {
                 CombineUpsampleModel.FileComplete = 0;
-                CombineUpsampleModel.FileAmount = fileTypesAndPaths.Length * 4;
+                CombineUpsampleModel.FileAmount = totalFiles;
 
                 CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
                 CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
@@ -296,13 +311,6 @@ namespace NeuroMap_Exporter.ViewModels
 
                 string directoryName = outputFileName.Replace(".txt", "");
 
-                int emgRowCount = File.ReadLines(fileTypesAndPaths.EMGFilePath).Count();
-                int sensor1RowCount = File.ReadLines(fileTypesAndPaths.Sensor1FilePath).Count();
-                int sensor2RowCount = File.ReadLines(fileTypesAndPaths.Sensor2FilePath).Count();
-
-                float sensor1RowRatio = (float)emgRowCount / sensor1RowCount;
-                float sensor2RowRatio = (float)emgRowCount / sensor2RowCount;
-
                 // Create tmp directory to store temporary files
                 tempDirectory = Path.Combine(tempDirectory, directoryName);
 
@@ -311,11 +319,18 @@ namespace NeuroMap_Exporter.ViewModels
                     Directory.CreateDirectory(tempDirectory);
                 }
 
-                
                 string tempEMGFilePath = Path.Combine(tempDirectory, directoryName + "_(EMG-IMU)_temp.csv");
-                string tempSensor1FilePath = Path.Combine(tempDirectory, directoryName + "_(Sensor1)_temp.csv");
-                string tempSensor2FilePath = Path.Combine(tempDirectory, directoryName + "_(Sensor2)_temp.csv");
+                string[] tempSensorFilePaths = [];
 
+                for (int i = 0; i < fileTypesAndPaths.SensorFilePaths.Length; i++)
+                {
+                    tempSensorFilePaths = tempSensorFilePaths.Append(Path.Combine(tempDirectory, directoryName + "_(Sensor_" + (i + 1) + ")_temp.csv")).ToArray();
+                }
+           
+               /* string tempSensor1FilePath = Path.Combine(tempDirectory, directoryName + "_(Sensor1)_temp.csv");
+                string tempSensor2FilePath = Path.Combine(tempDirectory, directoryName + "_(Sensor2)_temp.csv");*/
+
+                CombineUpsampleModel.CurrentFile = fileTypesAndPaths.EMGFilePath;
                 UpsampleEMGFileAsync(fileTypesAndPaths.EMGFilePath, tempEMGFilePath).Wait();
                 Dispatcher.UIThread.Invoke(() =>
                 {
@@ -327,7 +342,23 @@ namespace NeuroMap_Exporter.ViewModels
                     CombineUpsampleModel.RowComplete = 0;
                 });
 
-                UpsampleSensorFileAsync(fileTypesAndPaths.Sensor1FilePath, tempSensor1FilePath, tempEMGFilePath).Wait();
+                
+                for (int i = 0; i < fileTypesAndPaths.SensorFilePaths.Length; i++) 
+                {
+                    CombineUpsampleModel.CurrentFile = fileTypesAndPaths.SensorFilePaths[i];
+                    UpsampleSensorFileAsync(fileTypesAndPaths.SensorFilePaths[i], tempSensorFilePaths[i], tempEMGFilePath).Wait();
+                    Dispatcher.UIThread.Invoke(() =>
+                    {
+                        CombineUpsampleModel.FileComplete++;
+                        CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
+                        CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
+                        CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
+
+                        CombineUpsampleModel.RowComplete = 0;
+                    });
+                }
+
+                /*UpsampleSensorFileAsync(fileTypesAndPaths.Sensor2FilePath, tempSensor2FilePath, tempEMGFilePath).Wait();
                 Dispatcher.UIThread.Invoke(() =>
                 {
                     CombineUpsampleModel.FileComplete++;
@@ -336,21 +367,11 @@ namespace NeuroMap_Exporter.ViewModels
                     CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
 
                     CombineUpsampleModel.RowComplete = 0;
-                });
-
-                UpsampleSensorFileAsync(fileTypesAndPaths.Sensor2FilePath, tempSensor2FilePath, tempEMGFilePath).Wait();
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    CombineUpsampleModel.FileComplete++;
-                    CombineUpsampleModel.FileCompleteRatio = CombineUpsampleModel.FileComplete + " / " + CombineUpsampleModel.FileAmount;
-                    CombineUpsampleModel.FilePercentage = ((float)CombineUpsampleModel.FileComplete / (float)CombineUpsampleModel.FileAmount) * 100f;
-                    CombineUpsampleModel.FilePercentageString = Math.Round(CombineUpsampleModel.FilePercentage, 2) + "%";
-
-                    CombineUpsampleModel.RowComplete = 0;
-                });
+                });*/
 
 
-               CombineEMGandSensorFiles(tempEMGFilePath, tempSensor1FilePath, tempSensor2FilePath, outputFilePath).Wait();
+                CombineUpsampleModel.CurrentFile =  outputFilePath;
+                CombineEMGandSensorFiles(tempEMGFilePath, tempSensorFilePaths, outputFilePath).Wait();
                 Dispatcher.UIThread.Invoke(() =>
                 {
                     CombineUpsampleModel.FileComplete++;
@@ -679,11 +700,13 @@ namespace NeuroMap_Exporter.ViewModels
             EMGSr.Close();
         }
 
-        public async Task CombineEMGandSensorFiles(string tempEMGFilePath, string tempSensor1FilePath, string tempSensor2FilePath, string outputFilePath)
+        public async Task CombineEMGandSensorFiles(string tempEMGFilePath, string[] tempSensorFilePaths, string outputFilePath)
         {
             StreamReader tempEmgSr = new StreamReader(tempEMGFilePath);
-            StreamReader tempSensor1Sr = new StreamReader(tempSensor1FilePath);
-            StreamReader tempSensor2Sr = new StreamReader(tempSensor2FilePath);
+
+            StreamReader[] tempSensorSrs = new StreamReader[tempSensorFilePaths.Length];
+            /*StreamReader tempSensor1Sr = new StreamReader(tempSensor1FilePath);
+            StreamReader tempSensor2Sr = new StreamReader(tempSensor2FilePath);*/
 
             string[] splitOutputFilePath = outputFilePath.Split("\\");
             string[] outputDirectoryArray = splitOutputFilePath.Take(splitOutputFilePath.Length - 1).ToArray();
@@ -706,19 +729,37 @@ namespace NeuroMap_Exporter.ViewModels
             });
 
             string allEMGData = tempEmgSr.ReadToEnd();
-            string allSensor1Data = tempSensor1Sr.ReadToEnd();
-            string allSensor2Data = tempSensor2Sr.ReadToEnd();
             tempEmgSr.Close();
-            tempSensor1Sr.Close();
-            tempSensor2Sr.Close();
+
+            string[] allSensorsData = new string[tempSensorFilePaths.Length];
+            /*string allSensor1Data = tempSensor1Sr.ReadToEnd();
+            string allSensor2Data = tempSensor2Sr.ReadToEnd();*/
+
+            for (int i = 0; i < tempSensorFilePaths.Length; i++)
+            {
+                tempSensorSrs[i] = new StreamReader(tempSensorFilePaths[i]);
+                allSensorsData[i] = tempSensorSrs[i].ReadToEnd();
+                tempSensorSrs[i].Close();
+            }
 
             string[] emgDataLineSplit = allEMGData.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
-            string[] sensor1DataLineSplit = allSensor1Data.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
-            string[] sensor2DataLineSplit = allSensor2Data.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
+
+
+            string[][] sensorsDataLineSplit = new string[tempSensorFilePaths.Length][];
+            string[][][] sensorDataSplit = new string[tempSensorFilePaths.Length][][];
+
+            for (int i = 0; i < tempSensorFilePaths.Length; i++)
+            {
+                sensorsDataLineSplit[i] = allSensorsData[i].Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
+            }
+
+            /*string[] sensor1DataLineSplit = allSensor1Data.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
+            string[] sensor2DataLineSplit = allSensor2Data.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing*/
+
 
             string[,] emgDataSplit = new string[emgDataLineSplit.Length, emgDataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
-            string[,] sensor1DataSplit = new string[sensor1DataLineSplit.Length, sensor1DataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
-            string[,] sensor2DataSplit = new string[sensor2DataLineSplit.Length, sensor2DataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
+            /*string[,] sensor1DataSplit = new string[sensor1DataLineSplit.Length, sensor1DataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
+            string[,] sensor2DataSplit = new string[sensor2DataLineSplit.Length, sensor2DataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas*/
 
 
             for (int i = 0; i < emgDataLineSplit.Length; i++)
@@ -729,7 +770,18 @@ namespace NeuroMap_Exporter.ViewModels
                 }
             }
 
-            for (int i = 0; i < sensor1DataLineSplit.Length; i++)
+            for (int i = 0; i < tempSensorFilePaths.Length; i++)
+            {
+                for (int j = 0; j < sensorsDataLineSplit[i].Length; j++)
+                {
+                    for (int k = 0; k < sensorsDataLineSplit[i][j].Split("\t").Length; k++)
+                    {
+                        sensorsDataLineSplit[i][j] = sensorsDataLineSplit[i][j].Trim(); // Trim whitespace
+                    }
+                }
+            }
+
+            /*for (int i = 0; i < sensor1DataLineSplit.Length; i++)
             {
                 for (int j = 0; j < sensor1DataLineSplit[i].Split("\t").Length; j++)
                 {
@@ -743,7 +795,7 @@ namespace NeuroMap_Exporter.ViewModels
                 {
                     sensor2DataSplit[i, j] = sensor2DataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
                 }
-            }
+            }*/
 
 
             string outputLine = "";
@@ -751,8 +803,14 @@ namespace NeuroMap_Exporter.ViewModels
 
 
             string[] emgHeaders = emgDataLineSplit[0].Split(",");
-            string[] sensor1Headers = sensor1DataLineSplit[0].Split(",");
-            string[] sensor2Headers = sensor2DataLineSplit[0].Split(",");
+            string[][] sensorHeaders = new string[tempSensorFilePaths.Length][];
+            for (int i = 0; i < tempSensorFilePaths.Length; i++)
+            {
+                sensorHeaders[i] = sensorsDataLineSplit[i][0].Split(","); // Get headers from each sensor file
+            }
+
+            /*string[] sensor1Headers = sensor1DataLineSplit[0].Split(",");
+            string[] sensor2Headers = sensor2DataLineSplit[0].Split(",");*/
 
             // Combine headers from all three files
             for (int i = 0; i < emgHeaders.Length; i++)
@@ -762,22 +820,35 @@ namespace NeuroMap_Exporter.ViewModels
                     allHeaders += "\t" + emgHeaders[i]; // EMG headers
                 }
             }
-            for (int i = 0; i < sensor1Headers.Length; i++)
+            for (int i = 0; i < sensorHeaders.Length; i++)
             {
-                if (sensor1Headers[i] != "Time" && sensor1Headers[i] != "")
+                for (int j = 0; j < sensorHeaders[i].Length; j++)
                 {
-                    allHeaders += "\t" + "Sensor_1_" + sensor1Headers[i]; // Sensor 1 headers
-                }
-            }
-            for (int i = 0; i < sensor2Headers.Length; i++)
-            {
-                if (sensor2Headers[i] != "Time" && sensor2Headers[i] != "")
-                {
-                    allHeaders += "\t" + "Sensor_2_" + sensor2Headers[i]; // Sensor 2 headers
+                    if (sensorHeaders[i][j] != "Time" && sensorHeaders[i][j] != "")
+                    {
+                        allHeaders += "\t" + "Sensor_" + (i + 1) + "_" + sensorHeaders[i][j]; // Sensor headers
+                    }
                 }
             }
 
-            int numHeaderrs = allHeaders.Split("\t").Length;
+
+            /* for (int i = 0; i < sensor1Headers.Length; i++)
+             {
+                 if (sensor1Headers[i] != "Time" && sensor1Headers[i] != "")
+                 {
+                     allHeaders += "\t" + "Sensor_1_" + sensor1Headers[i]; // Sensor 1 headers
+                 }
+             }
+             for (int i = 0; i < sensor2Headers.Length; i++)
+             {
+                 if (sensor2Headers[i] != "Time" && sensor2Headers[i] != "")
+                 {
+                     allHeaders += "\t" + "Sensor_2_" + sensor2Headers[i]; // Sensor 2 headers
+                 }
+             }
+ */
+            string[] splitHeaders = allHeaders.Split("\n");
+            int numHeaders = splitHeaders.Length;
 
             // Write headers to the output file
 
@@ -831,6 +902,8 @@ namespace NeuroMap_Exporter.ViewModels
 
 
             string[] emgDataLine;
+            string[][] sensorDataLine = new string[tempSensorFilePaths.Length][];
+
             string[] sensor1DataLine;
             string[] sensor2DataLine;
             float time = 0f;
@@ -840,8 +913,19 @@ namespace NeuroMap_Exporter.ViewModels
                 do
                 {
                     emgDataLine = emgDataLineSplit[currentItem].Split(",");
+                    sensorDataLine = new string [tempSensorFilePaths.Length][];
+
+                    for (int i = 0; i < tempSensorFilePaths.Length; i++)
+                    {
+                        sensorDataLine[i] = sensorsDataLineSplit[i][currentItem].Split(",");
+
+                        //sensorDataLine[i] = sensorDataLine[i].Concat(sensorsDataLineSplit[i][currentItem].Split(",")).ToArray();
+                    }
+
+                    /*sensorDataLine = sensorsDataLineSplit[currentItem].Split(",");
+
                     sensor1DataLine = sensor1DataLineSplit[currentItem].Split(",");
-                    sensor2DataLine = sensor2DataLineSplit[currentItem].Split(",");
+                    sensor2DataLine = sensor2DataLineSplit[currentItem].Split(",");*/
 
                     if (emgDataLine.First() != "")
                         time = float.Parse(emgDataLine.First());
@@ -860,12 +944,30 @@ namespace NeuroMap_Exporter.ViewModels
                     else
                         readFiles = false;
 
-                    // Add Sensor 1 data
-                    if (sensor1DataLine[0] != "")
+
+                    // Add Sensor data
+                    for (int i = 0; i < tempSensorFilePaths.Length; i++)
                     {
-                        for (int i = 1; i < sensor1DataLine.Length; i++) // Start from 1 to skip the "Time" header
+                        if (sensorDataLine[i][0] != "")
                         {
-                            outputLine += "\t" + sensor1DataLine[i];
+                            for (int j = 1; j < sensorDataLine[i].Length; j++) // Start from 1 to skip the "Time" header
+                            {
+                                outputLine += "\t" + sensorDataLine[i][j];
+                            }
+                        }
+                        else
+                        {
+                            readFiles = false;
+                            break;
+                        }
+                    }
+
+                    /*// Add Sensor 1 data
+                    if (sensorDataLine[0] != "")
+                    {
+                        for (int i = 1; i < sensorDataLine.Length; i++) // Start from 1 to skip the "Time" header
+                        {
+                            outputLine += "\t" + sensorDataLine[i];
                         }
                     }
                     else
@@ -873,15 +975,15 @@ namespace NeuroMap_Exporter.ViewModels
 
 
                     // Add Sensor 2 data
-                    if (sensor2DataLine[0] != "")
+                    if (sensorDataLine[0] != "")
                     {
-                        for (int i = 1; i < sensor2DataLine.Length; i++) // Start from 1 to skip the "Time" header
+                        for (int i = 1; i < sensorDataLine.Length; i++) // Start from 1 to skip the "Time" header
                         {
-                            outputLine += "\t" + sensor2DataLine[i];
+                            outputLine += "\t" + sensorDataLine[i];
                         }
                     }
                     else
-                        readFiles = false;
+                        readFiles = false;*/
 
                     // Write the combined line to the output file
                     if (readFiles)
@@ -907,9 +1009,6 @@ namespace NeuroMap_Exporter.ViewModels
             }
 
 
-            tempEmgSr.Close();
-            tempSensor1Sr.Close();
-            tempSensor2Sr.Close();
             outputSw.Flush();
             outputSw.Close();
         }

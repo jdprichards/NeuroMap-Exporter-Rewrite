@@ -162,40 +162,57 @@ namespace NeuroMap_Exporter.ViewModels
             }
 
 
-
             UpsamplerModel.DisableUpsample = false;
         }
 
-        public async Task WriteHeaders(StreamWriter sw, string[] headers)
+        public async Task WriteHeaders(StreamWriter outputSw, string[] headers)
         {
+
             try
             {
-                for (int i = 3; i < headers.Length; i += 2)
+                // file01 row
+                string outputLine = "\tfile01\tfile01";
+                foreach (string header in headers)
                 {
-                    sw.Write("\tfile01");
+                    if (header != "")
+                        outputLine += "\tfile01"; // Add tab before each header
                 }
-                sw.WriteLine("");
+                outputSw.WriteLine(outputLine);
 
-                sw.Write("\tTime\tANALOGTIME");
-                for (int i = 1; i < headers.Length; i += 2)
+                // time Analogtime row
+                outputLine = "\tTIME\tANALOGTIME";
+                foreach (string header in headers)
                 {
-                    sw.Write("\t" + headers[i]);
+                    if (header != "")
+                        outputLine += "\t" + header; // Add tab before each header
                 }
-                sw.WriteLine();
+                outputSw.WriteLine(outputLine);
 
-                sw.Write("\tFRAME_NUMBERS\tFRAME_NUMBERS");
-                for (int i = 1; i < headers.Length; i += 2)
+                // Frame_Numbers Analog row
+                outputLine = "\tFRAME_NUMBERS\tFRAME_NUMBERS";
+                foreach (string header in headers)
                 {
-                    sw.Write("\tANALOG");
+                    if (header != "")
+                        outputLine += "\t" + "ANALOG"; // Add tab before each header
                 }
-                sw.WriteLine();
+                outputSw.WriteLine(outputLine);
 
-                sw.WriteLine("ITEM");
-                for (int i = 3; i < headers.Length; i += 2)
+                outputLine = "\tORIGINAL\tORIGINAL"; // New line after headers
+                foreach (string header in headers)
                 {
-                    sw.Write("\t0");
+                    if (header != "")
+                        outputLine += "\t" + "ORIGINAL"; // Add tab before each header
                 }
-                sw.WriteLine();
+                outputSw.WriteLine(outputLine);
+
+                // ITEM row
+                outputLine = "ITEM\t0\t0"; // New line after headers
+                foreach (string header in headers)
+                {
+                    if (header != "")
+                        outputLine += "\t" + "0"; // Add tab before each header
+                }
+                outputSw.WriteLine(outputLine);
             }
             catch (Exception e)
             {
@@ -226,7 +243,7 @@ namespace NeuroMap_Exporter.ViewModels
                 string[] splitData = sr.ReadToEnd().Split("\n");
                 string[] lineSplitData = splitData[0].Split(",");
 
-                float lowestInterval = 100.0f;
+                float lowestInterval = float.PositiveInfinity;
                 float highestInterval = 0.0f;
                 float highestTime = 0.0f;
 

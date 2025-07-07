@@ -23,108 +23,145 @@
 				   FontWeight="DemiBold"/>
 
 		<DockPanel Grid.Row="1">
-			<Grid Name="ProgressGrid"
+			<Grid Name="BottomGrid"
 						  DockPanel.Dock="Bottom"
 						  Margin="0 0"
 						  IsVisible="{Binding !NMExporterModel.HideProgress}">
 
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="150"/>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="150"/>
-				</Grid.ColumnDefinitions>
 
-				<Grid Name="ProgressLabels">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="10"/>
-					</Grid.RowDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="30"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
 
-					<TextBlock Grid.Row="0"
-							   FontSize="12"
-							   Text="File Progress"
+				<Grid Name="CurrentFile"
+					   Grid.Row="0">
+					
+					
+					
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="150"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="150"/>
+					</Grid.ColumnDefinitions>
+
+					<TextBlock
+						Grid.Column="0"
+						FontSize="12"
+						
+						Text="Current File"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"/>
+					
+					<TextBlock Name="LocalFilePath"
+							   Grid.Column="1"
+							   Text="{Binding NMExporterModel.CurrentFile}"
 							   HorizontalAlignment="Center"
 							   VerticalAlignment="Center"/>
-					<TextBlock Grid.Row="1"
-							   FontSize="12"
-							   Text="Row Progress"
-							   HorizontalAlignment="Center"
-							   VerticalAlignment="Center"/>
+
 				</Grid>
 
-				<Border Grid.Column="1">
-					<Border.Effect>
-						<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
-					</Border.Effect>
-
-					<Grid Name="ProgressBars">
+				<Grid Name="ProgressGrid"
+					  Grid.Row="1">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="150"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="150"/>
+					</Grid.ColumnDefinitions>
+					
+					<Grid Name="ProgressLabels"
+						  >
 						<Grid.RowDefinitions>
 							<RowDefinition Height="30"/>
 							<RowDefinition Height="30"/>
 							<RowDefinition Height="10"/>
 						</Grid.RowDefinitions>
 
-						<ProgressBar Grid.Row="0"
-									 Name="FilesProgress"
-									 Value="{Binding NMExporterModel.FilePercentage}"
-									 Height="15"
-									 Minimum="0"
-									 Maximum="100"
-									 Margin="5"
-									 BorderThickness="1"
-									 BorderBrush="Gray"/>
 						<TextBlock Grid.Row="0"
-								   Name="FilesPercent"
-								   Text="{Binding NMExporterModel.FilePercentageString}"
+								   FontSize="12"
+								   Text="File Progress"
 								   HorizontalAlignment="Center"
 								   VerticalAlignment="Center"/>
-
-						<ProgressBar Grid.Row="1"
-									 Name="RowsProgress"
-									 Value="{Binding NMExporterModel.RowPercentage}"
-									 Height="15"
-									 Minimum="0"
-									 Maximum="100"
-									 Margin="5"
-									 BorderThickness="1"
-									 BorderBrush="Gray"/>
-
 						<TextBlock Grid.Row="1"
-								   Name="RowsPercent"
-								   Text="{Binding NMExporterModel.RowPercentageString}"
+								   FontSize="12"
+								   Text="Row Progress"
 								   HorizontalAlignment="Center"
 								   VerticalAlignment="Center"/>
 					</Grid>
 
-				</Border>
+					<Border Grid.Column="1">
+						<Border.Effect>
+							<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
+						</Border.Effect>
 
-				<Grid Grid.Column="2"
-					  Name="ProgressAmounts">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="10"/>
-					</Grid.RowDefinitions>
+						<Grid Name="ProgressBars">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="30"/>
+								<RowDefinition Height="30"/>
+								<RowDefinition Height="10"/>
+							</Grid.RowDefinitions>
 
-					<TextBlock Grid.Row="0"
-							   Name="FilesRemaining"
-							   FontSize="12"
-							   FontWeight="DemiBold"
-							   TextAlignment="Center"
-							   HorizontalAlignment="Left"
-							   VerticalAlignment="Center"
-							   Text="{Binding NMExporterModel.FileCompleteRatio}"/>
+							<ProgressBar Grid.Row="0"
+										 Name="FilesProgress"
+										 Value="{Binding NMExporterModel.FilePercentage}"
+										 Height="15"
+										 Minimum="0"
+										 Maximum="100"
+										 Margin="5"
+										 BorderThickness="1"
+										 BorderBrush="Gray"/>
+							<TextBlock Grid.Row="0"
+									   Name="FilesPercent"
+									   Text="{Binding NMExporterModel.FilePercentageString}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
 
-					<TextBlock Grid.Row="1"
-							   Name="RowsRemaining"
-							   FontSize="12"
-							   FontWeight="DemiBold"
-							   TextAlignment="Center"
-							   HorizontalAlignment="Left"
-							   VerticalAlignment="Center"
-							   Text="{Binding NMExporterModel.RowCompleteRatio}"/>
+							<ProgressBar Grid.Row="1"
+										 Name="RowsProgress"
+										 Value="{Binding NMExporterModel.RowPercentage}"
+										 Height="15"
+										 Minimum="0"
+										 Maximum="100"
+										 Margin="5"
+										 BorderThickness="1"
+										 BorderBrush="Gray"/>
 
+							<TextBlock Grid.Row="1"
+									   Name="RowsPercent"
+									   Text="{Binding NMExporterModel.RowPercentageString}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
+						</Grid>
+
+					</Border>
+
+					<Grid Grid.Column="2"
+						  Name="ProgressAmounts">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height="10"/>
+						</Grid.RowDefinitions>
+
+						<TextBlock Grid.Row="0"
+								   Name="FilesRemaining"
+								   FontSize="12"
+								   FontWeight="DemiBold"
+								   TextAlignment="Center"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   Text="{Binding NMExporterModel.FileCompleteRatio}"/>
+
+						<TextBlock Grid.Row="1"
+								   Name="RowsRemaining"
+								   FontSize="12"
+								   FontWeight="DemiBold"
+								   TextAlignment="Center"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   Text="{Binding NMExporterModel.RowCompleteRatio}"/>
+
+					</Grid>
 				</Grid>
 			</Grid>
 

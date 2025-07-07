@@ -17,111 +17,149 @@
 			<RowDefinition Height="50"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
+		
 		<TextBlock Grid.Row="0"
 				   Text="Combine Upsample"
 				   HorizontalAlignment="Center"
 				   VerticalAlignment="Center"
 				   FontWeight="DemiBold"/>
+		
 		<DockPanel Grid.Row="1">
-			<Grid Name="ProgressGrid"
+			<Grid Name="BottomGrid"
 				  DockPanel.Dock="Bottom"
 				  Margin="0 0"
 				  IsVisible="{Binding !CombineUpsampleModel.HideProgress}">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="150"/>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="150"/>
-				</Grid.ColumnDefinitions>
-				<Grid Name="ProgressLabels">
+
+				<Grid.RowDefinitions>
+					<RowDefinition Height ="30"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+
+				<Grid Name ="CurrentFile"
+					  Grid.Row="0">
 					<Grid.RowDefinitions>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="10"/>
+						<RowDefinition Height ="30"/>
 					</Grid.RowDefinitions>
-					<TextBlock Grid.Row="0"
-							   FontSize="12"
-							   Text="File Progress"
+
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="150"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="150"/>
+					</Grid.ColumnDefinitions>
+
+					<TextBlock
+						Grid.Column="0"
+						FontSize="12"
+						
+						Text="Current File"
+						HorizontalAlignment="Center"
+						VerticalAlignment="Center"/>
+					<TextBlock Name="LocalFilePath"
+							   Grid.Column="1"
+							   Text="{Binding CombineUpsampleModel.CurrentFile}"
 							   HorizontalAlignment="Center"
-							   VerticalAlignment="Center"/>
-					<TextBlock Grid.Row="1"
-							   FontSize="12"
-							   Text="Row Progress"
-							   HorizontalAlignment="Center"
-							   VerticalAlignment="Center"/>
+								VerticalAlignment="Center"/>
 				</Grid>
-				<Border Grid.Column="1">
-					<Border.Effect>
-						<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
-					</Border.Effect>
-					<Grid Name="ProgressBars">
-						<!-- Progress bars will be added here -->
+
+				<Grid Name="ProgressGrid"
+					  Grid.Row="1">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="150"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="150"/>
+					</Grid.ColumnDefinitions>
+					<Grid Name="ProgressLabels">
+						
 						<Grid.RowDefinitions>
 							<RowDefinition Height="30"/>
 							<RowDefinition Height="30"/>
 							<RowDefinition Height="10"/>
 						</Grid.RowDefinitions>
-						
-						<ProgressBar Grid.Row="0"
-									 Name="FilesProgress"
-									 Value="{Binding CombineUpsampleModel.FilePercentage}"
-									 Height="15"
-									 Minimum="0"
-									 Maximum="100"
-									 BorderThickness="1"
-									 BorderBrush="Gray"/>
-
 						<TextBlock Grid.Row="0"
-								   Name="FilesPercent"
-								   Text="{Binding CombineUpsampleModel.FilePercentageString}"
+								   FontSize="12"
+								   Text="File Progress"
 								   HorizontalAlignment="Center"
 								   VerticalAlignment="Center"/>
-
-						<ProgressBar Grid.Row="1"
-									 Name="RowProgress"
-									 Value="{Binding CombineUpsampleModel.RowPercentage}"
-									 Height="15"
-									 Minimum="0"
-									 Maximum="100"
-									 Margin="0"
-									 BorderThickness="1"
-									 BorderBrush="Gray"/>
-
 						<TextBlock Grid.Row="1"
-								   Name="RowPercent"
-								   Text="{Binding CombineUpsampleModel.RowPercentageString}"
+								   FontSize="12"
+								   Text="Row Progress"
 								   HorizontalAlignment="Center"
 								   VerticalAlignment="Center"/>
 					</Grid>
-				</Border>
+					<Border Grid.Column="1">
+						<Border.Effect>
+							<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
+						</Border.Effect>
+						<Grid Name="ProgressBars">
+							<!-- Progress bars will be added here -->
+							<Grid.RowDefinitions>
+								<RowDefinition Height="30"/>
+								<RowDefinition Height="30"/>
+								<RowDefinition Height="10"/>
+							</Grid.RowDefinitions>
 
-				<Grid Grid.Column="2"
-					  Name="ProgressAmounts">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="10"/>
-					</Grid.RowDefinitions>
-					
-					<TextBlock Grid.Row="0"
-							   Name="FilesRemaining"
-							   FontSize="12"
-							   FontWeight="DemiBold"
-							   TextAlignment="Center"
-							   HorizontalAlignment="Left"
-							   VerticalAlignment="Center"
-							   Text="{Binding CombineUpsampleModel.FileCompleteRatio}"/>
+							<ProgressBar Grid.Row="0"
+										 Name="FilesProgress"
+										 Value="{Binding CombineUpsampleModel.FilePercentage}"
+										 Height="15"
+										 Minimum="0"
+										 Maximum="100"
+										 BorderThickness="1"
+										 BorderBrush="Gray"/>
 
-					<TextBlock Grid.Row="1"
-							   Name="RowsRemaining"
-							   FontSize="12"
-							   FontWeight="DemiBold"
-							   TextAlignment="Center"
-							   HorizontalAlignment="Left"
-							   VerticalAlignment="Center"
-							   Text="{Binding CombineUpsampleModel.RowCompleteRatio}"/>
+							<TextBlock Grid.Row="0"
+									   Name="FilesPercent"
+									   Text="{Binding CombineUpsampleModel.FilePercentageString}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
+
+							<ProgressBar Grid.Row="1"
+										 Name="RowProgress"
+										 Value="{Binding CombineUpsampleModel.RowPercentage}"
+										 Height="15"
+										 Minimum="0"
+										 Maximum="100"
+										 Margin="0"
+										 BorderThickness="1"
+										 BorderBrush="Gray"/>
+
+							<TextBlock Grid.Row="1"
+									   Name="RowPercent"
+									   Text="{Binding CombineUpsampleModel.RowPercentageString}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
+						</Grid>
+					</Border>
+
+					<Grid Grid.Column="2"
+						  Name="ProgressAmounts">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height="10"/>
+						</Grid.RowDefinitions>
+
+						<TextBlock Grid.Row="0"
+								   Name="FilesRemaining"
+								   FontSize="12"
+								   FontWeight="DemiBold"
+								   TextAlignment="Center"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   Text="{Binding CombineUpsampleModel.FileCompleteRatio}"/>
+
+						<TextBlock Grid.Row="1"
+								   Name="RowsRemaining"
+								   FontSize="12"
+								   FontWeight="DemiBold"
+								   TextAlignment="Center"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   Text="{Binding CombineUpsampleModel.RowCompleteRatio}"/>
+					</Grid>
 				</Grid>
 			</Grid>
-			
+
 			<!-- Other UI elements can be added here -->
 			<Grid DockPanel.Dock="Top" Margin="25 0">
 				<Grid.RowDefinitions>
