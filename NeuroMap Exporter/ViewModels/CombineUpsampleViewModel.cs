@@ -414,14 +414,13 @@ namespace NeuroMap_Exporter.ViewModels
 
             string[] dataLineSplit = allData.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
 
-            string[,] dataSplit = new string[dataLineSplit.Length, dataLineSplit[0].Split(",").Length];
+            string[][] dataSplit = new string[dataLineSplit.Length][];
 
             for (int i = 0; i < dataLineSplit.Length; i++)
             {
-                for (int j = 0; j < dataLineSplit[i].Split(",").Length; j++)
-                {
-                    dataSplit[i, j] = dataLineSplit[i].Split(",")[j].Trim(); // Split each line by commas and trim whitespace
-                }
+                string[] splitLine = dataLineSplit[i].Split(",");
+                dataSplit[i] = splitLine;
+
             }
 
             // Get None time series headers from EMG file
@@ -443,13 +442,11 @@ namespace NeuroMap_Exporter.ViewModels
             float lowestTime = float.MaxValue;
             foreach (string timeInterval in timeIntervals)
             {
-                if (float.TryParse(timeInterval, out float timeValue) && timeValue < lowestTime && timeValue != 0)
+                if (float.TryParse(timeInterval, out float timeValue) &&  timeValue > 0)
                 {
-                    lowestTime = timeValue;
+                    lowestTime = Math.Min(lowestTime, timeValue);
                 }
             }
-
-            EMGSr = new StreamReader(emgFilePath); // Return Stream Reader to start of file
 
             // Initialize temporary EMG file with headers and first data line
             // Note: The first data line is assumed to be all zeroes, as per the original code logic
@@ -471,13 +468,8 @@ namespace NeuroMap_Exporter.ViewModels
 
             for (int i = 0; i < EMGHeaders.Length; i++)
             {
+                nextTime[i] = 0.0f;
                 currentRow[i] = 2; // Initialize current row index
-            }
-
-            // Fill previous time and last datum as zero
-            foreach (string header in EMGHeaders)
-            {
-                nextTime[Array.IndexOf(EMGHeaders, header)] = 0f;
             }
 
 
@@ -495,25 +487,25 @@ namespace NeuroMap_Exporter.ViewModels
 
                     outRow = mainRow * lowestTime + "";
 
-                    for (int i = 0; i < EMGHeaders.Length; i += 1)
+                    for (int i = 0; i < EMGHeaders.Length; i ++)
                     {
 
-                        if (dataSplit[currentRow[i], i * 2] != "" && dataSplit[currentRow[i], i * 2] != null)
+                        if (dataSplit[currentRow[i]][i * 2] != "" && dataSplit[currentRow[i]][i * 2] != null)
                         {
-                            nextTime[i] = float.Parse(dataSplit[currentRow[i], i * 2]);
+                            nextTime[i] = float.Parse(dataSplit[currentRow[i]][i * 2]);
                         }
                     }
 
-                    for (int i = 0; i < EMGHeaders.Length; i += 1)
+                    for (int i = 0; i < EMGHeaders.Length; i++)
                     {
                         if (nextTime[i] <= lowestTime * mainRow)
                         {
                             currentRow[i]++;
                         }
 
-                        if (dataSplit[currentRow[i], i * 2] != "" && dataSplit[currentRow[i], i * 2] != null)
+                        if (dataSplit[currentRow[i]][i * 2] != "" && dataSplit[currentRow[i]][i * 2] != null)
                         {
-                            outRow += ("," + dataSplit[currentRow[i], i * 2 + 1]);
+                            outRow += ("," + dataSplit[currentRow[i]][  i * 2 + 1]);
                         }
                     }
 
@@ -521,7 +513,7 @@ namespace NeuroMap_Exporter.ViewModels
                     for (int i = 0; i < EMGHeaders.Length; i++)
                     {
                         int row = currentRow[i];
-                        if (dataSplit[row, i * 2] == "" || dataSplit[row, i * 2] == null)
+                        if (dataSplit[row][i * 2] == "" || dataSplit[row][i * 2] == null)
                         {
                             readingFile = false; // Any of the time data is not null, so we are still reading the file
                             break;
@@ -576,13 +568,13 @@ namespace NeuroMap_Exporter.ViewModels
             SensorSr.Close();
 
             string[] dataLineSplit = allData.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
-            string[,] dataSplit = new string[dataLineSplit.Length, dataLineSplit[0].Split("\t").Length]; // .txt files are seperated by tabs (\t)
+            string[][] dataSplit = new string[dataLineSplit.Length][]; // .txt files are seperated by tabs (\t)
 
             for (int i = 0; i < dataLineSplit.Length; i++)
             {
                 for (int j = 0; j < dataLineSplit[i].Split("\t").Length; j++)
                 {
-                    dataSplit[i, j] = dataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
+                    dataSplit[i][j] = dataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
                 }
             }
             // Get None time series headers from Sensor file
@@ -600,7 +592,7 @@ namespace NeuroMap_Exporter.ViewModels
 
             float lowestTime = float.MaxValue;
 
-            if (float.TryParse(dataSplit[2, 0], out float timeValue) && timeValue < lowestTime && timeValue != 0)
+            if (float.TryParse(dataSplit[2][0], out float timeValue) && timeValue < lowestTime && timeValue != 0)
             {
                 lowestTime = timeValue;
             }
@@ -643,9 +635,9 @@ namespace NeuroMap_Exporter.ViewModels
                     else
                         break; // If no time data, break the loop
 
-                    if (dataSplit[currentRow, 0] != "" && dataSplit[currentRow, 0] != null)
+                    if (dataSplit[currentRow][0] != "" && dataSplit[currentRow][0]!= null)
                     {
-                        nextSensorTime = float.Parse(dataSplit[currentRow + 1, 0]); // Get time from Sensor file
+                        nextSensorTime = float.Parse(dataSplit[currentRow + 1][0]); // Get time from Sensor file
                     }
                     else
                         break; // If no time data, break the loop
@@ -660,11 +652,11 @@ namespace NeuroMap_Exporter.ViewModels
 
                     for (int i = 0; i < sensorHeaders.Length; i++)
                     {
-                        if (currentRow < dataSplit.GetLength(0) && dataSplit[currentRow, 0] != "" && dataSplit[currentRow, 0] != null)
+                        if (currentRow < dataSplit.GetLength(0) && dataSplit[currentRow][0] != "" && dataSplit[currentRow][0] != null)
                         {
-                            if (float.TryParse(dataSplit[currentRow, 0], out float sensorTime))
+                            if (float.TryParse(dataSplit[currentRow][0], out float sensorTime))
                             {
-                                outRow += "," + dataSplit[currentRow, i + 1]; // Append the sensor data
+                                outRow += "," + dataSplit[currentRow][i + 1]; // Append the sensor data
                             }
                             else
                             {
@@ -673,7 +665,7 @@ namespace NeuroMap_Exporter.ViewModels
                         }
                     }
 
-                    if (currentRow >= dataSplit.GetLength(0) || dataSplit[currentRow, 0] == "" || dataSplit[currentRow, 0] == null)
+                    if (currentRow >= dataSplit.GetLength(0) || dataSplit[currentRow][0] == "" || dataSplit[currentRow][0] == null)
                     {
                         readingFile = false; // If any of the time data is not null, we are still reading the file
                     }
@@ -746,7 +738,6 @@ namespace NeuroMap_Exporter.ViewModels
 
 
             string[][] sensorsDataLineSplit = new string[tempSensorFilePaths.Length][];
-            string[][][] sensorDataSplit = new string[tempSensorFilePaths.Length][][];
 
             for (int i = 0; i < tempSensorFilePaths.Length; i++)
             {
@@ -757,7 +748,7 @@ namespace NeuroMap_Exporter.ViewModels
             string[] sensor2DataLineSplit = allSensor2Data.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing*/
 
 
-            string[,] emgDataSplit = new string[emgDataLineSplit.Length, emgDataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
+            string[][] emgDataSplit = new string[emgDataLineSplit.Length][]; // .txt files are seperated by commas
             /*string[,] sensor1DataSplit = new string[sensor1DataLineSplit.Length, sensor1DataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas
             string[,] sensor2DataSplit = new string[sensor2DataLineSplit.Length, sensor2DataLineSplit[0].Split(",").Length]; // .txt files are seperated by commas*/
 
@@ -766,7 +757,7 @@ namespace NeuroMap_Exporter.ViewModels
             {
                 for (int j = 0; j < emgDataLineSplit[i].Split("\t").Length; j++)
                 {
-                    emgDataSplit[i, j] = emgDataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
+                    emgDataSplit[i][j] = emgDataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
                 }
             }
 
@@ -852,7 +843,6 @@ namespace NeuroMap_Exporter.ViewModels
 
             // Write headers to the output file
 
-
             // file01 row
             outputLine = "\tfile01\tfile01";
             foreach (string header in allHeaders.Split("\t"))
@@ -904,8 +894,6 @@ namespace NeuroMap_Exporter.ViewModels
             string[] emgDataLine;
             string[][] sensorDataLine = new string[tempSensorFilePaths.Length][];
 
-            string[] sensor1DataLine;
-            string[] sensor2DataLine;
             float time = 0f;
             try
             {

@@ -125,7 +125,6 @@ namespace NeuroMap_Exporter.ViewModels
 
             // types of NeuroMap files denoted at the end of file
             // E.g. xxxxx_(Sensor 1)_Firings.txt
-            string[] fileEnds = ["Firings", "MFR", "MUAPs", "Stats"];
 
             // Get all files in directory
             string[] files = { };
@@ -160,6 +159,7 @@ namespace NeuroMap_Exporter.ViewModels
                     UpsamplerModel.RowComplete = 0;
                 });
             }
+
 
 
             UpsamplerModel.DisableUpsample = false;
@@ -222,97 +222,157 @@ namespace NeuroMap_Exporter.ViewModels
 
         public async Task UpsampleFileAsync(string file, string localPath)
         {
+
+            // This creates a local file name ending with upsampled and the files original extension
+            string[] splitExtention = localPath.Split(".");
+            localPath = localPath.Replace("." + splitExtention.Last(), "_Upsampled." + splitExtention.Last());
+
+            StreamReader sr = new StreamReader(file);
+            StreamWriter sw = new StreamWriter(UpsamplerModel.OutputFolder + localPath);
+
             try
             {
                 Dispatcher.UIThread.Invoke(() =>
                 {
+                    UpsamplerModel.RowComplete = 0;
                     UpsamplerModel.RowAmount = File.ReadLines(file).Count();
+
+                    UpsamplerModel.RowCompleteRatio = UpsamplerModel.RowComplete + " / " + UpsamplerModel.RowAmount;
+                    UpsamplerModel.RowPercentage = ((float)UpsamplerModel.RowComplete) / (float)UpsamplerModel.RowAmount * 100.0f;
+                    UpsamplerModel.RowPercentageString = Math.Round(UpsamplerModel.RowPercentage, 2) + "%";
+
+
+                    UpsamplerModel.CurrentFile = file;
                 });
 
-                StreamReader sr = new StreamReader(file);
-                StreamWriter sw = new StreamWriter(UpsamplerModel.OutputFolder + localPath);
+                string allData = sr.ReadToEnd();
+                sr.Close();
+
+                string[] dataLineSplit = allData.Replace("\r", "").Split("\n");
+                string[][] dataSplit = new string[dataLineSplit.Length][];
+
+                for (int i = 0; i < dataLineSplit.Length; i++)
+                {
+                    string[] splitLine = dataLineSplit[i].Split(",");
+                    dataSplit[i] = splitLine;
+/*                    for (int j = 0; j < dataLineSplit[i].Length; j++)
+                        dataSplit[i][j] = splitLine[j].Trim();*/
+                }
 
                 // string strHeaders = sr.ReadLine();
 
-                string stringHeaders = sr.ReadLine();
-                string[] headers = stringHeaders.Replace("\"", "").Split(",");
-               
+                string[] fullHeaders = dataLineSplit[0].Split(",");
+                string[] headers = new string[0];
+
+                foreach (string header in fullHeaders)
+                {
+                    if (!header.Contains("X[s]"))
+                    {
+                        string newHeader = header.Replace(":", "").Replace(" ", "_"); // Remove colons and replace spaces with underscores
+                        newHeader = newHeader.Replace("\"", ""); // Remove Quotation marks
+                        headers = headers.Append(newHeader).ToArray();
+                    }
+                }
+
+                string[] timeIntervals = dataLineSplit[2].Split(","); // Get first none-zero time series data line
+                float lowestTime = float.MaxValue;
+
+                foreach (string timeInterval in timeIntervals)
+                {
+                    if (float.TryParse(timeInterval, out float timeValue) && timeValue > 0)
+                    {
+                        lowestTime = Math.Min(lowestTime, timeValue);
+                    }
+                }
+
                 // Writing Headers
                 WriteHeaders(sw, headers);
 
-                string[] splitData = sr.ReadToEnd().Split("\n");
-                string[] lineSplitData = splitData[0].Split(",");
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    UpsamplerModel.RowComplete++;
+                    UpsamplerModel.RowCompleteRatio = UpsamplerModel.RowComplete + " / " + UpsamplerModel.RowAmount;
+                    UpsamplerModel.RowPercentage = ((float)UpsamplerModel.RowComplete) / (float)UpsamplerModel.RowAmount * 100.0f;
+                    UpsamplerModel.RowPercentageString = Math.Round(UpsamplerModel.RowPercentage, 2) + "%";
+                });
 
-                float lowestInterval = float.PositiveInfinity;
-                float highestInterval = 0.0f;
-                float highestTime = 0.0f;
+                bool readFile = true;
+                int currentItem = 1; // Start from 1
 
-                int[] latestRow = [];
-                int[] targetSplitLineData = [];
-                float[] lastKnowValues = [];
+                float[] nextTime = new float[headers.Length];
+                int[] currentRow = new int[headers.Length];
 
                 for (int i = 0; i < headers.Length; i++)
                 {
-                    lastKnowValues.Append(0);
-                    latestRow.Append(1);
+                    nextTime[i] = 0.0f;
+                    currentRow[i] = 2;
                 }
 
-                for (int i = 0; i < splitData.Length; i++)
+                string outRow = "";
+
+
+                // Writing Data
+                do
                 {
-                    targetSplitLineData.Append(0);
-                }
+                    readFile = true;
+                    outRow = currentItem + "\t" + currentItem * lowestTime + "\t" + currentItem * lowestTime;
 
-                //  Find Lowest and Highest Interval
-
-                // Lowest Interval
-                for (int i = 0; i < lineSplitData.Length - 2; i += 2)
-                    if (float.Parse(lineSplitData[i]) < lowestInterval)
-                        lowestInterval = float.Parse(lineSplitData[i]);
-
-                // Highest Interval
-                for (int i = 0; i < lineSplitData.Length - 2; i += 2)
-                    if (float.Parse(lineSplitData[i]) > highestInterval)
-                        highestInterval = float.Parse(lineSplitData[i]);
-
-                for (int i = 0; i < lineSplitData.Length - 2; i += 2)
-                    for (int k = 1; k < lineSplitData.Length - 1; k++)
-                        if (lineSplitData[k].Split(",")[i] != "")
-                            highestTime = float.Parse(lineSplitData[k].Split(",")[i]);
-
-                int row = 0;
-                float timeValue = lowestInterval * row;
-
-                while(timeValue < highestTime)
-                {
-                    sw.Write(row + 1 + "\t" +  timeValue + "\t" + timeValue);
-                    for (int i = 0; i < headers.Length; i += 2) 
+                    for (int i = 0; i < headers.Length; i++)
                     {
-                        if (lineSplitData[latestRow[i] - 1].Split(",")[i-1] != "")
+                        if (dataSplit[currentRow[i]][i * 2] != "" && dataSplit[currentRow[i]][i * 2] != null)
                         {
-                            if (float.Parse(lineSplitData[latestRow[i] - 1].Split(',')[i-1]) <= timeValue)
-                            {
-                                if (lastKnowValues[i] != float.Parse(lineSplitData[latestRow[i] - 1].Split(",")[i]))
-                                    lastKnowValues[i] = float.Parse(lineSplitData[latestRow[i] - 1].Split(",")[i]);
-
-                                if (latestRow[i] < lineSplitData.Length - 1)
-                                    latestRow[i]++;
-                            }
+                            nextTime[i] = float.Parse(dataSplit[currentRow[i]][i * 2]);
                         }
-
-                        sw.Write("\t" + lastKnowValues[i]);
                     }
-                    sw.WriteLine();
-                    row++;
-                    timeValue = lowestInterval * row;
-                }
-                sr.Close();
-                sw.Close();
 
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        if (nextTime[i] <= currentItem * lowestTime)
+                        {
+                           
+                            currentRow[i]++;
+                        }
+                        if (dataSplit[currentRow[i]][i * 2] != "" && dataSplit[currentRow[i]][i * 2] != null)
+                        {
+                            if (currentRow[i] < dataSplit.Length)
+                                outRow += "\t" + dataSplit[currentRow[i]][i * 2 + 1]; // Add tab before each data
+                        }
+                    }
+
+                    currentItem++;
+
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        if (dataSplit[currentRow[i]][i * 2 + 1] == "" || dataSplit[currentRow[i]][i * 2 + 1] == null)
+                        {
+                            readFile = false;
+                        }
+                    }
+
+                    if (readFile)
+                    {
+                        sw.WriteLine(outRow);
+
+                        Dispatcher.UIThread.Invoke(() =>
+                        {
+                            UpsamplerModel.RowComplete++;
+                            UpsamplerModel.RowCompleteRatio = UpsamplerModel.RowComplete + " / " + UpsamplerModel.RowAmount;
+                            UpsamplerModel.RowPercentage = ((float)UpsamplerModel.RowComplete) / (float)UpsamplerModel.RowAmount * 100.0f;
+                            UpsamplerModel.RowPercentageString = Math.Round(UpsamplerModel.RowPercentage, 2) + "%";
+                        });
+                    }
+                } while (readFile);
+
+                
             }
             catch (Exception e)
             {
                 Exception ex = e;
             }
+
+            sw.Flush();
+            sw.Close();
+            
         }
     }
 }

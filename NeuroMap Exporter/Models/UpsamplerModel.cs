@@ -27,8 +27,10 @@ namespace NeuroMap_Exporter.Models
         private string _rowPercentageString;
         private string _filePercentageString;
 
+        private string _currentFile;
+
         private bool _disableUpsample;
-        private bool _hideProgress;
+        private bool _hideProgress = true;
 
         public string InputFolder
         {
@@ -100,6 +102,12 @@ namespace NeuroMap_Exporter.Models
         {
             get => _rowCompleteRatio; 
             set => SetProperty(ref _rowCompleteRatio, value);
+        }
+
+        public string CurrentFile
+        {
+            get => _currentFile;
+            set => SetProperty(ref _currentFile, value);
         }
 
         public bool DisableUpsample

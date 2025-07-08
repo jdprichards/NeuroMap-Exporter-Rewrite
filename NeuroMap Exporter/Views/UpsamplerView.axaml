@@ -23,9 +23,10 @@
 
 		<DockPanel Grid.Row="1">
 			<Grid Name="BottomGrid"
-						  DockPanel.Dock="Bottom"
-						  Margin="0 0"
-						  >
+					DockPanel.Dock="Bottom"
+					Margin="0 0"
+					IsVisible="{Binding !UpsamplerModel.HideProgress}">
+
 				<Grid.RowDefinitions>
 					<RowDefinition Height ="30"/>
 					<RowDefinition Height="*"/>
@@ -42,7 +43,7 @@
 						<ColumnDefinition Width="*"/>
 						<ColumnDefinition Width="150"/>
 					</Grid.ColumnDefinitions>
-					
+
 					<TextBlock
 						Grid.Column="0"
 						FontSize="12"
@@ -50,13 +51,13 @@
 						HorizontalAlignment="Center"
 						VerticalAlignment="Center"/>
 
-					<!--Text="{Binding UpsamplerModel.CurrentFile}"-->
 					<TextBlock Name="LocalFilePath"
+							   Text="{Binding UpsamplerModel.CurrentFile}"
 							   Grid.Column="1"
 							   VerticalAlignment="Center"
 							   HorizontalAlignment="Center"
 							   />
-					
+
 				</Grid>
 
 
@@ -67,104 +68,103 @@
 						<ColumnDefinition Width="*"/>
 						<ColumnDefinition Width="150"/>
 					</Grid.ColumnDefinitions>
-				
-				
-				<Grid Name="ProgressLabels"
-					  Grid.Column="0">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height ="30"/>
-						<RowDefinition Height="10"/>
-					</Grid.RowDefinitions>
-					
 
-					<TextBlock Grid.Row="0"
-							   FontSize="12"
-							   Text="File Progress"
-							   HorizontalAlignment="Center"
-							   VerticalAlignment="Center"/>
-					<TextBlock Grid.Row="1"
-							   FontSize="12"
-							   Text="Row Progress"
-							   HorizontalAlignment="Center"
-							   VerticalAlignment="Center"/>
-				</Grid>
+					<Grid Name="ProgressLabels"
+						  Grid.Column="0">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="30"/>
+							<RowDefinition Height ="30"/>
+							<RowDefinition Height="10"/>
+						</Grid.RowDefinitions>
 
-				<Border Grid.Column="1">
-					<Border.Effect>
-						<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
-					</Border.Effect>
 
-					<Grid Name="ProgressBars"
-						  Grid.Column="1">
-						
+						<TextBlock Grid.Row="0"
+								   FontSize="12"
+								   Text="File Progress"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+						<TextBlock Grid.Row="1"
+								   FontSize="12"
+								   Text="Row Progress"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"/>
+					</Grid>
+
+					<Border Grid.Column="1">
+						<Border.Effect>
+							<DropShadowDirectionEffect ShadowDepth="3" BlurRadius="15"/>
+						</Border.Effect>
+
+						<Grid Name="ProgressBars"
+							  Grid.Column="1">
+
+							<Grid.RowDefinitions>
+								<RowDefinition Height="30"/>
+								<RowDefinition Height="30"/>
+								<RowDefinition Height="10"/>
+							</Grid.RowDefinitions>
+
+							<ProgressBar Grid.Row="0"
+										 Name="FilesProgress"
+										 Value="{Binding UpsamplerModel.FilePercentage}"
+										 Height="15"
+										 Minimum="0"
+										 Maximum="100"
+										 Margin="5"
+										 BorderThickness="1"
+										 BorderBrush="Gray"/>
+							<TextBlock Grid.Row="0"
+									   Name="FilesPercent"
+									   Text="{Binding UpsamplerModel.FilePercentageString}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
+
+							<ProgressBar Grid.Row="1"
+										 Name="RowsProgress"
+										 Value="{Binding UpsamplerModel.RowPercentage}"
+										 Height="15"
+										 Minimum="0"
+										 Maximum="100"
+										 Margin="5"
+										 BorderThickness="1"
+										 BorderBrush="Gray"/>
+
+							<TextBlock Grid.Row="1"
+									   Name="RowsPercent"
+									   Text="{Binding UpsamplerModel.RowPercentageString}"
+									   HorizontalAlignment="Center"
+									   VerticalAlignment="Center"/>
+
+						</Grid>
+
+					</Border>
+					<Grid Grid.Column="2"
+						  Name="ProgressAmounts">
 						<Grid.RowDefinitions>
 							<RowDefinition Height="30"/>
 							<RowDefinition Height="30"/>
 							<RowDefinition Height="10"/>
 						</Grid.RowDefinitions>
-						
-						<ProgressBar Grid.Row="0"
-									 Name="FilesProgress"
-									 Value="{Binding UpsamplerModel.FilePercentage}"
-									 Height="15"
-									 Minimum="0"
-									 Maximum="100"
-									 Margin="5"
-									 BorderThickness="1"
-									 BorderBrush="Gray"/>
-						<TextBlock Grid.Row="0"
-								   Name="FilesPercent"
-								   Text="{Binding UpsamplerModel.FilePercentageString}"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center"/>
 
-						<ProgressBar Grid.Row="1"
-									 Name="RowsProgress"
-									 Value="{Binding UpsamplerModel.RowPercentage}"
-									 Height="15"
-									 Minimum="0"
-									 Maximum="100"
-									 Margin="5"
-									 BorderThickness="1"
-									 BorderBrush="Gray"/>
+						<TextBlock Grid.Row="0"
+								   Name="FilesRemaining"
+								   FontSize="12"
+								   FontWeight="DemiBold"
+								   TextAlignment="Center"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   Text="{Binding UpsamplerModel.FileCompleteRatio}"/>
 
 						<TextBlock Grid.Row="1"
-								   Name="RowsPercent"
-								   Text="{Binding UpsamplerModel.RowPercentageString}"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center"/>
-						
+								   Name="RowsRemaining"
+								   FontSize="12"
+								   FontWeight="DemiBold"
+								   TextAlignment="Center"
+								   HorizontalAlignment="Left"
+								   VerticalAlignment="Center"
+								   Text="{Binding UpsamplerModel.RowCompleteRatio}"/>
+
 					</Grid>
-
-				</Border>
-			</Grid>
-				<Grid Grid.Column="2"
-					  Name="ProgressAmounts">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="30"/>
-						<RowDefinition Height="10"/>
-					</Grid.RowDefinitions>
-					
-					<TextBlock Grid.Row="0"
-							   Name="FilesRemaining"
-							   FontSize="12"
-							   FontWeight="DemiBold"
-							   TextAlignment="Center"
-							   HorizontalAlignment="Left"
-							   VerticalAlignment="Center"
-							   Text="{Binding UpsamplerModel.FileCompleteRatio}"/>
-
-					<TextBlock Grid.Row="1"
-							   Name="RowsRemaining"
-							   FontSize="12"
-							   FontWeight="DemiBold"
-							   TextAlignment="Center"
-							   HorizontalAlignment="Left"
-							   VerticalAlignment="Center"
-							   Text="{Binding UpsamplerModel.RowCompleteRatio}"/>
-
 				</Grid>
 			</Grid>
 
