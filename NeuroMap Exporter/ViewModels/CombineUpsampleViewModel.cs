@@ -600,7 +600,6 @@ namespace NeuroMap_Exporter.ViewModels
             // Initialize temporary Sensor file with headers and first data line
             // Note: The first data line is assumed to be all zeroes, as per the original code logic
             string writeHeaders = "Time";
-            string writeFirstDataLine = "0";
             foreach (string header in sensorHeaders)
             {
                 writeHeaders += "," + header;
