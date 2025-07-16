@@ -69,7 +69,7 @@
                 Content="Neuromap Exporter"
                 IsEnabled="True"
                 ToolTip.ShowDelay="250"
-                ToolTip.Tip="Adds V3D headers to files exported from NeuroMap Explorer" />
+                ToolTip.Tip="Adds Visual3D headers to files exported from NeuroMap Explorer" />
 
             <Button
                 Grid.Column="3"
@@ -81,9 +81,9 @@
                 VerticalContentAlignment="Center"
                 Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigatePage}"
                 CommandParameter="EMG-IMU Upsampler"
-                Content="EMG-IMU Upsampler"
+                Content="EMG IMU Upsampler"
                 ToolTip.ShowDelay="250"
-                ToolTip.Tip="Upsamples EMG-IMU data to match the highest sample rate within the file and adds V3D Headers" />
+                ToolTip.Tip="Upsamples EMG-IMU data to match the highest sample rate within the file and adds Visual3D Headers" />
 
             <Button
                 Grid.Column="5"
@@ -98,7 +98,7 @@
                 Content="Combine Upsampler"
                 IsEnabled="True"
                 ToolTip.ShowDelay="250"
-                ToolTip.Tip="Combines and upsamples EMG-IMU and additional sensor data to match the highest sample rate within the files and adds V3D Headers" />
+                ToolTip.Tip="Combines and upsamples EMG, IMU and MFR data to match the highest sample rate within the files and adds Visual3D Headers" />
         </Grid>
     </Grid>
 </UserControl>
