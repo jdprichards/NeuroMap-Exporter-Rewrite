@@ -1,79 +1,104 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
-             xmlns:vm="using:NeuroMap_Exporter.ViewModels"
-			 x:Class="NeuroMap_Exporter.Views.HomeView"
-			 x:CompileBindings="True"
-			 x:DataType="vm:HomeViewModel">
+<UserControl
+    x:Class="NeuroMap_Exporter.Views.HomeView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:NeuroMap_Exporter.ViewModels"
+    d:DesignHeight="500"
+    d:DesignWidth="800"
+    x:CompileBindings="True"
+    x:DataType="vm:HomeViewModel"
+    mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:HomeViewModel/>
-	</Design.DataContext>
+    <Design.DataContext>
+        <vm:HomeViewModel />
+    </Design.DataContext>
 
-	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="50"/>
-			<RowDefinition Height="25"/>
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
 
-		<TextBlock Grid.Row="0"
-				   Text="Welcome to NeuroMap Exporter"
-					FontWeight="DemiBold"
-				   HorizontalAlignment="Center"
-				   VerticalAlignment="Center"/>
-		<TextBlock Grid.Row="1"
-				   Text="There are currently 2 different functions shown below"
-				   Margin="10 0"
-				   VerticalAlignment="Center"/>
-		<Grid Grid.Row="2">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="250"/>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="100"/>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="100"/>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="250"/>
-			</Grid.ColumnDefinitions>
 
-			<Button Grid.Column="1"
-					Height="400"
-					Width="250"
-					Content="Neuromap Exporter"
-					HorizontalAlignment="Center"
-					VerticalAlignment="Center"
-					HorizontalContentAlignment="Center"
-					VerticalContentAlignment="Center"
-					IsEnabled="True"
-					Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigatePage}"
-					CommandParameter="NM Exporter"/>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="25" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-			<Button Grid.Column="3"
-					Height="400"
-					Width="250"
-					Content="Combine Upsampler"
-					HorizontalAlignment="Center"
-					VerticalAlignment="Center"
-					HorizontalContentAlignment="Center"
-					VerticalContentAlignment="Center"
-					IsEnabled="True"
-					Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigatePage}"
-					CommandParameter="Combine Upsampler"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="250" />
+        </Grid.ColumnDefinitions>
 
-			<Button Grid.Column="5"
-					Height="400"
-					Width="250"
-					Content="EMG-IMU Upsampler"
-					HorizontalAlignment="Center"
-					VerticalAlignment="Center"
-					HorizontalContentAlignment="Center"
-					VerticalContentAlignment="Center"
-					Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigatePage}"
-					CommandParameter="EMG-IMU Upsampler"
-						/>
-		</Grid>
-	</Grid>
+        <TextBlock
+            Grid.Row="0"
+            Grid.ColumnSpan="2"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            FontWeight="DemiBold"
+            Text="Welcome to NeuroMap Exporter"
+            TextAlignment="Center" />
+
+
+        <TextBlock
+            Grid.Row="1"
+            Margin="10,0"
+            VerticalAlignment="Center"
+            Text="There are currently 3 different functions shown below" />
+
+        <Grid Grid.Row="2" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="250" />
+            </Grid.ColumnDefinitions>
+
+            <Button
+                Grid.Column="1"
+                Width="250"
+                Height="400"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigatePage}"
+                CommandParameter="NM Exporter"
+                Content="Neuromap Exporter"
+                IsEnabled="True"
+                ToolTip.ShowDelay="250"
+                ToolTip.Tip="Adds V3D headers to files exported from NeuroMap Explorer" />
+
+            <Button
+                Grid.Column="3"
+                Width="250"
+                Height="400"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigatePage}"
+                CommandParameter="EMG-IMU Upsampler"
+                Content="EMG-IMU Upsampler"
+                ToolTip.ShowDelay="250"
+                ToolTip.Tip="Upsamples EMG-IMU data to match the highest sample rate within the file and adds V3D Headers" />
+
+            <Button
+                Grid.Column="5"
+                Width="250"
+                Height="400"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).NavigatePage}"
+                CommandParameter="Combine Upsampler"
+                Content="Combine Upsampler"
+                IsEnabled="True"
+                ToolTip.ShowDelay="250"
+                ToolTip.Tip="Combines and upsamples EMG-IMU and additional sensor data to match the highest sample rate within the files and adds V3D Headers" />
+        </Grid>
+    </Grid>
 </UserControl>

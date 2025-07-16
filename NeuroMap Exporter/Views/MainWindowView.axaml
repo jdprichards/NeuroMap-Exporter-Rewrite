@@ -1,82 +1,203 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:NeuroMap_Exporter.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
-        WindowState="Maximized"
-		x:Class="NeuroMap_Exporter.Views.MainWindowView"
-        x:DataType="vm:MainWindowViewModel"
-		x:CompileBindings="True"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="NeuroMap Exporter">
+<Window
+    x:Class="NeuroMap_Exporter.Views.MainWindowView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:NeuroMap_Exporter.ViewModels"
+    Title="NeuroMap Exporter"
+    MinWidth="1800"
+    MinHeight="800"
+    d:DesignHeight="500"
+    d:DesignWidth="800"
+    x:CompileBindings="True"
+    x:DataType="vm:MainWindowViewModel"
+    Icon="/Assets/avalonia-logo.ico"
+    WindowState="Maximized"
+    mc:Ignorable="d">
 
-	<Design.DataContext>
-		<!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-		<vm:MainWindowViewModel/>
-	</Design.DataContext>
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
 
-	<DockPanel>
-		<Grid DockPanel.Dock="Bottom"
-				   Height="50"
-				   Background="Gray">
-			<TextBlock
-				Text="Developed by Joeseph Richards | github.com/jdprichards"
-				HorizontalAlignment="Center"
-				VerticalAlignment="Center"/>
-		</Grid>
+    <DockPanel>
+        <Grid
+            Height="50"
+            Background="Gray"
+            DockPanel.Dock="Bottom">
+            <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Text="Developed by Joeseph Richards | github.com/jdprichards" />
+        </Grid>
 
-		<Grid DockPanel.Dock="Top"
-			  Height="50"
-			  Background="Gray">
+        <Grid
+            Height="50"
+            Background="Gray"
+            DockPanel.Dock="Top">
 
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="50"/>
-			</Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="50" />
+            </Grid.ColumnDefinitions>
 
-			<TextBlock Grid.Column="0"
-					   Text="NeuroMap Exporter"
-					   VerticalAlignment="Center"
-					   Margin="10"
-					   Foreground="White"
-					   FontWeight="DemiBold"
-					   FontSize="18"/>
+            <TextBlock
+                Grid.Column="0"
+                Margin="10"
+                VerticalAlignment="Center"
+                FontSize="18"
+                FontWeight="DemiBold"
+                Foreground="White"
+                Text="NeuroMap Exporter" />
 
-			<Button Click="clkHome"
-					HorizontalAlignment="Right"
-					VerticalAlignment="Center"
-					HorizontalContentAlignment="Center"
-					Grid.Column="1"
-					Content="Home"
-					Margin="0 0"
-					Width="60"
-					Height="30"
-					Background="Blue"
-					Foreground="White"/>
-			
-			<Button Click="clkExit"
-					HorizontalAlignment="Right"
-					VerticalAlignment="Center"
-					HorizontalContentAlignment="Center"
-					Grid.Column="2"
-					Content="Exit"
-					Margin="10 0"
-					Width="50"
-					Height="30"
-					Background="Red"
-					Foreground="White"/>
-		</Grid>
+            <Button
+                Grid.Column="1"
+                Width="60"
+                Height="30"
+                Margin="0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                HorizontalContentAlignment="Center"
+                Background="Blue"
+                Click="clkHome"
+                Content="Home"
+                Foreground="White" />
 
-		<!-- Main Page -->
-		<Border BorderBrush="Gray"
-				BorderThickness="1"
-				ClipToBounds="True">
+            <Button
+                Grid.Column="2"
+                Width="50"
+                Height="30"
+                Margin="10,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                HorizontalContentAlignment="Center"
+                Background="Red"
+                Click="clkExit"
+                Content="Exit"
+                Foreground="White" />
+        </Grid>
 
-			<TransitioningContentControl Content="{Binding CurrentPage}"/>
+        <!--  Main Page  -->
+        <Border
+            BorderBrush="Gray"
+            BorderThickness="1"
+            ClipToBounds="True">
 
-		</Border>
-	</DockPanel>
+            <SplitView
+                HorizontalContentAlignment="Right"
+                CompactPaneLength="40"
+                DisplayMode="CompactInline"
+                IsPaneOpen="{Binding MainWindowModel.HelpVisible}"
+                OpenPaneLength="500"
+                PanePlacement="Right">
+
+                <SplitView.Pane>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="50" />
+                            <RowDefinition Height="25" />
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+
+                        <ToggleButton
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="10,10"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Command="{Binding ToggleHelp}">
+                            <Panel>
+                                <PathIcon Classes="HelpClosed" Data="{StaticResource chevron_left_regular}" />
+                                <PathIcon Classes="HelpOpen" Data="{StaticResource chevron_right_regular}" />
+                            </Panel>
+                        </ToggleButton>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Margin="10,10"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            FontSize="14"
+                            FontWeight="DemiBold"
+                            IsVisible="{Binding MainWindowModel.HelpVisible}"
+                            Text="Help"
+                            TextAlignment="Center" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="10,10"
+                            IsVisible="{Binding MainWindowModel.HelpVisible}">
+                            This is where infomation about the program can be found
+                        </TextBlock>
+
+                        <TextBlock
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            FontSize="13">
+                            NeuroMap Exporter is a tool designed to help users export data from<LineBreak />
+                            NeuroMap in a user-friendly manner. The application provides various<LineBreak />
+                            functionalities to assist with data management and export processes.</TextBlock>
+
+                        <Expander
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Top"
+                            IsVisible="{Binding MainWindowModel.HelpVisible}">
+                            <Expander.Header>
+                                NeuroMap Exporter
+                            </Expander.Header>
+                            <TextBlock FontSize="13" />
+                        </Expander>
+
+                        <Expander
+                            Grid.Row="5"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Top"
+                            IsVisible="{Binding MainWindowModel.HelpVisible}">
+                            <Expander.Header>
+                                EMG-IMU
+                            </Expander.Header>
+                            <TextBlock />
+                        </Expander>
+
+                        <Expander
+                            Grid.Row="6"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Top"
+                            IsVisible="{Binding MainWindowModel.HelpVisible}">
+                            <Expander.Header>
+                                Combine Upsampler
+                            </Expander.Header>
+                            <TextBlock />
+                        </Expander>
+
+                    </Grid>
+
+                </SplitView.Pane>
+
+                <TransitioningContentControl Content="{Binding CurrentPage}" />
+
+            </SplitView>
+
+        </Border>
+    </DockPanel>
 </Window>
+

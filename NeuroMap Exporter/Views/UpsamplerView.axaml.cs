@@ -9,5 +9,7 @@ public partial class UpsamplerView : UserControl
     public UpsamplerView()
     {
         InitializeComponent();
+
+        
     }
 }

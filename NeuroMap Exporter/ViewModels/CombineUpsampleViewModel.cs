@@ -241,7 +241,7 @@ namespace NeuroMap_Exporter.ViewModels
 
         public async Task CombineUpsampleAsync()
         {
-            string tempDirectory = Path.Combine(CombineUpsampleModel.OutputFolder, "temporary files");
+            string tempDirectory = Path.Combine(CombineUpsampleModel.OutputFolder, "Temporary Files");
 
             CombineUpsampleModel.DisableUpsample = true;
             CombineUpsampleModel.HideProgress = false;
@@ -572,13 +572,15 @@ namespace NeuroMap_Exporter.ViewModels
 
             for (int i = 0; i < dataLineSplit.Length; i++)
             {
-                for (int j = 0; j < dataLineSplit[i].Split("\t").Length; j++)
+                dataSplit[i] = dataLineSplit[i].Split("\t");
+                /*for (int j = 0; j < dataLineSplit[i].Split("\t").Length; j++)
                 {
                     dataSplit[i][j] = dataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
                 }
+                */
             }
-            // Get None time series headers from Sensor file
-            string[] sensorHeaders = new string[0];
+                // Get None time series headers from Sensor file
+                string[] sensorHeaders = new string[0];
             string[] fullHeaders = dataLineSplit[0].Split("\t"); // Read headers from Sensor file
             foreach (string header in fullHeaders)
             {
@@ -735,7 +737,6 @@ namespace NeuroMap_Exporter.ViewModels
 
             string[] emgDataLineSplit = allEMGData.Replace("\r", "").Split("\n"); // Replace line breaks with commas for easier processing
 
-
             string[][] sensorsDataLineSplit = new string[tempSensorFilePaths.Length][];
 
             for (int i = 0; i < tempSensorFilePaths.Length; i++)
@@ -754,20 +755,18 @@ namespace NeuroMap_Exporter.ViewModels
 
             for (int i = 0; i < emgDataLineSplit.Length; i++)
             {
-                for (int j = 0; j < emgDataLineSplit[i].Split("\t").Length; j++)
+                emgDataSplit[i] = emgDataLineSplit[i].Split("\t");
+                /*for (int j = 0; j < emgDataLineSplit[i].Split("\t").Length; j++)
                 {
                     emgDataSplit[i][j] = emgDataLineSplit[i].Split("\t")[j].Trim(); // Split each line by commas and trim whitespace
-                }
+                }*/
             }
 
             for (int i = 0; i < tempSensorFilePaths.Length; i++)
             {
                 for (int j = 0; j < sensorsDataLineSplit[i].Length; j++)
                 {
-                    for (int k = 0; k < sensorsDataLineSplit[i][j].Split("\t").Length; k++)
-                    {
-                        sensorsDataLineSplit[i][j] = sensorsDataLineSplit[i][j].Trim(); // Trim whitespace
-                    }
+                    sensorsDataLineSplit[i][j] = sensorsDataLineSplit[i][j].Trim(); // Trim whitespace
                 }
             }
 

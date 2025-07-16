@@ -46,7 +46,7 @@ namespace NeuroMap_Exporter.ViewModels
                         Title = "Select a Folder",
 
                     });
-
+                    
                     if (file[0] != null)
                         return file[0].TryGetLocalPath();
                 }

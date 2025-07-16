@@ -10,6 +10,8 @@ namespace NeuroMap_Exporter.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
+
+        public MainWindowModel MainWindowModel { get; set; } = new MainWindowModel();
         public MainWindowViewModel()
         {
             CurrentPage = _pages["Home"];
@@ -26,9 +28,12 @@ namespace NeuroMap_Exporter.ViewModels
             {"Combine Upsampler", new CombineUpsampleViewModel() }
         };
 
+        public void ToggleHelp()
+        {
+            MainWindowModel.HelpVisible = !MainWindowModel.HelpVisible;
+        }
 
         public string Greeting { get; } = "Welcome to Avalonia!";
-
         public ViewModelBase CurrentPage
         {
             get  => _currentPage;
