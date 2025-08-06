@@ -15,8 +15,6 @@
         <vm:HomeViewModel />
     </Design.DataContext>
 
-
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50" />
@@ -37,7 +35,6 @@
             FontWeight="DemiBold"
             Text="Welcome to NeuroMap Exporter"
             TextAlignment="Center" />
-
 
         <TextBlock
             Grid.Row="1"

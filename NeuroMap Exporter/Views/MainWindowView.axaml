@@ -78,7 +78,6 @@
                 Foreground="White" />
         </Grid>
 
-        <!--  Main Page  -->
         <Border
             BorderBrush="Gray"
             BorderThickness="1"
@@ -87,11 +86,12 @@
             <SplitView
                 HorizontalContentAlignment="Right"
                 CompactPaneLength="40"
-                DisplayMode="CompactInline"
+                DisplayMode="CompactOverlay"
                 IsPaneOpen="{Binding MainWindowModel.HelpVisible}"
                 OpenPaneLength="500"
                 PanePlacement="Right">
 
+                <!--  Side Help Panel  -->
                 <SplitView.Pane>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -101,12 +101,7 @@
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="50" />
-                            <RowDefinition Height="50" />
-                            <RowDefinition Height="50" />
-                            <RowDefinition Height="25" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
                         <ToggleButton
@@ -134,65 +129,109 @@
                             Text="Help"
                             TextAlignment="Center" />
 
-                        <TextBlock
+                        <ScrollViewer
                             Grid.Row="1"
-                            Grid.Column="1"
-                            Margin="10,10"
-                            IsVisible="{Binding MainWindowModel.HelpVisible}">
-                            This is where infomation about the program can be found
-                        </TextBlock>
-
-                        <TextBlock
-                            Grid.Row="2"
-                            Grid.Column="1"
-                            FontSize="13">
-                            NeuroMap Exporter is a tool designed to help users export data from<LineBreak />
-                            NeuroMap in a user-friendly manner. The application provides various<LineBreak />
-                            functionalities to assist with data management and export processes.</TextBlock>
-
-                        <Expander
-                            Grid.Row="4"
                             Grid.Column="0"
-                            Grid.ColumnSpan="2"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Top"
-                            IsVisible="{Binding MainWindowModel.HelpVisible}">
-                            <Expander.Header>
-                                NeuroMap Exporter
-                            </Expander.Header>
-                            <TextBlock FontSize="13" />
-                        </Expander>
+                            Grid.ColumnSpan="2">
+                            <StackPanel>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="50" />
+                                        <RowDefinition Height="50" />
+                                        <RowDefinition Height="25" />
+                                    </Grid.RowDefinitions>
 
-                        <Expander
-                            Grid.Row="5"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="2"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Top"
-                            IsVisible="{Binding MainWindowModel.HelpVisible}">
-                            <Expander.Header>
-                                EMG-IMU
-                            </Expander.Header>
-                            <TextBlock />
-                        </Expander>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
 
-                        <Expander
-                            Grid.Row="6"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="2"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Top"
-                            IsVisible="{Binding MainWindowModel.HelpVisible}">
-                            <Expander.Header>
-                                Combine Upsampler
-                            </Expander.Header>
-                            <TextBlock />
-                        </Expander>
+
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        Margin="10,10"
+                                        IsVisible="{Binding MainWindowModel.HelpVisible}">
+                                        This is where infomation about the program can be found
+                                    </TextBlock>
+
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        FontSize="13">
+                                        NeuroMap Exporter is a tool designed to help users export data from<LineBreak />
+                                        NeuroMap Explorer in a user-friendly manner. The application provides<LineBreak />
+                                        various functionalities to assist with data management and export<LineBreak />
+                                        processes.</TextBlock>
+                                </Grid>
+
+                                <Expander
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Top"
+                                    IsVisible="{Binding MainWindowModel.HelpVisible}">
+                                    <Expander.Header>
+                                        NeuroMap Exporter
+                                    </Expander.Header>
+
+                                    <TextBlock FontSize="13">
+                                        Converts files exported from NeuroMap Explorer to be converted to a<LineBreak />
+                                        format that can be read into Visual3D.<LineBreak /><LineBreak />
+                                        Files exported directly from NeuroMap Explorer can be used as input.<LineBreak />
+                                        Singlular files can be converted, or entire folders can be selected for<LineBreak />
+                                        batch processing.<LineBreak /><LineBreak />
+                                        When a folder is selected, all files within the folder will be processed.<LineBreak />
+                                        This process will also remove any files that are not compatible with<LineBreak />
+                                        Visual3D (none .txt or .csv files).<LineBreak /><LineBreak />
+                                        The files will have the same name and extension as the original file.<LineBreak />
+                                        When folders are selected subsequent subfolders and files<LineBreak />
+                                        will be checked and attempted to be converted.<LineBreak /><LineBreak />
+                                        Warning: Do not include files you do not want to be converted<LineBreak />
+                                        within the folders you select, as this will result in them being<LineBreak />
+                                        attempted to be converted.</TextBlock>
+                                </Expander>
+
+                                <Expander
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Top"
+                                    IsVisible="{Binding MainWindowModel.HelpVisible}">
+                                    <Expander.Header>
+                                        EMG-IMU Upsampler
+                                    </Expander.Header>
+
+                                    <TextBlock FontSize="13">
+                                        Upsample EMG and IMU data to match the highest sample rate<LineBreak />
+                                        within the file and converting it to a format that can be read into Visual3D.<LineBreak />
+
+                                    </TextBlock>
+                                </Expander>
+
+                                <Expander
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Top"
+                                    IsVisible="{Binding MainWindowModel.HelpVisible}">
+                                    <Expander.Header>
+                                        Combine Upsampler
+                                    </Expander.Header>
+                                    <TextBlock FontSize="13">
+                                        Combines EMG and IMU data with data from mutiple sensors<LineBreak />
+                                        while upsampling to match the highest sample rate<LineBreak />
+                                        and converting it to a format that can be read into Visual3D.</TextBlock>
+                                </Expander>
+
+                            </StackPanel>
+
+                        </ScrollViewer>
 
                     </Grid>
-
                 </SplitView.Pane>
 
+                <!--  Binds main screen to the current selected page  -->
                 <TransitioningContentControl Content="{Binding CurrentPage}" />
 
             </SplitView>
